@@ -5,7 +5,7 @@ export default async function handler(req, res) {
     const { id } = req.query;
     
     // Använd process.env direkt i serverless-funktioner, inte REACT_APP_ prefix
-    const BACKEND_URL = process.env.BACKEND_URL || process.env.REACT_APP_BACKEND_URL || 'https://api.aivisioncontest.com';
+    const BACKEND_URL = process.env.BACKEND_URL || process.env.REACT_APP_BACKEND_URL || 'sunny-laughter-production-4c2c.up.railway.app';
     
     console.log(`Fetching artist data for id: ${id} from ${BACKEND_URL}/artist/${id}`);
     
