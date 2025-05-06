@@ -11,13 +11,14 @@ export default async function handler(req, res) {
     
     // Hämta artistdata från ditt backend med felhantering
     const response = await fetch(
-      `${BACKEND_URL.replace(/\/$/, '')}/artist/${id}`
+      `${BACKEND_URL.replace(/\/$/, '')}/artists/${id}`
     );
     
     if (!response.ok) {
       throw new Error(`Backend returned ${response.status}`);
     }
-    
+    console.log('Backend response status:', response.status);
+
     const artist = await response.json();
     
     // Logga för debugging
