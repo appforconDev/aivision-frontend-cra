@@ -6,7 +6,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(facebookexternalhit|Twitterbot|Pinterest).*"
+          "value": "(?i)(facebookexternalhit|twitterbot|pinterest|linkedinbot|whatsapp|slackbot)"
         }
       ],
       "destination": "/api/ssr/artists/:id*"
@@ -14,22 +14,25 @@
   ],
   "headers": [
     {
-      "source": "/api/ssr/artists/:path*",
+      "source": "/api/ssr/artists/:id*",
       "headers": [
+        { 
+          "key": "Cache-Control", 
+          "value": "s-maxage=3600, stale-while-revalidate" 
+        },
         {
-          "key": "Cache-Control",
-          "value": "public, s-maxage=3600, stale-while-revalidate"
+          "key": "Vercel-CDN-Cache-Control",
+          "value": "s-maxage=3600"
         }
       ]
     }
   ],
-  "routes": [
+  "redirects": [
     {
-      "src": "/artists/.*",
-      "headers": {
-        "Cache-Control": "no-store"
-      },
-      "continue": true
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "aivisioncontest.com" }],
+      "destination": "https://www.aivisioncontest.com/:path*",
+      "permanent": true
     }
   ]
 }
