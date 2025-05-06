@@ -3,13 +3,7 @@
   "rewrites": [
     {
       "source": "/artists/:id+",         
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": "(?i)(facebookexternalhit|twitterbot|linkedinbot|whatsapp|pinterest|slackbot|telegrambot|google.*snippet)"
-        }
-      ],
+      
       "destination": "/api/ssr/artists/:id"
     }
   ],

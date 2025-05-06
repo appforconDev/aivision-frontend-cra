@@ -41,7 +41,7 @@ const Footer = () => {
 
         {/* Copyright */}
         <div className="text-center text-xs text-white/60 mt-8">
-          © {new Date().getFullYear()} <span className="text-primary">AIVisionContest</span> All rights reserved. Brought to you by <Link to="https://winberghmedia.com" className="text-secondary hover:text-primary transition-colors">Winbergh Media</Link>.
+          © {new Date().getFullYear()} <span className="text-primary">AIVisionContest</span> All rights reserved. Brought to you by <Link to="https://winberghmedia.com" className="text-secondary hover:text-primary transition-colors">Winbergh Media</Link>
         </div>
       </div>
     </footer>
