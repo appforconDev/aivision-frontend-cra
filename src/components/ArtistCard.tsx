@@ -8,7 +8,7 @@ import MusicStatusHandler from "./MusicStatusHandler";
 import { Artist, AverageRating } from './types';
 import StarRating from './StarRating';
 import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedin, FaTiktok } from 'react-icons/fa';
-import { Helmet } from 'react-helmet-async';
+
 
 interface ArtistCardProps {
   artist: Artist,
@@ -242,7 +242,6 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
   }, [artist.status, artist.song_url]);
 
   return (
-    
   <Card className={cardClass} onClick={() => navigate(`/artists/${artist.artist_id}`)}>
     <div className="flex items-center justify-between mb-4">
       <Music className="h-6 w-6 text-primary" />
@@ -251,14 +250,7 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
         {artist.name}
       </h2>
     </div>
-    <Helmet>
-      <title>{artist.name} – AI Vision Contest</title>
-      <meta name="description" content={artist.background_story.slice(0, 160)} />
-      <meta property="og:title" content={artist.name} />
-      <meta property="og:description" content={artist.background_story.slice(0, 160)} />
-      <meta property="og:image" content={artist.image_url!} />
-      <meta property="og:url" content={`https://www.aivisioncontest.com/artists/${artist.artist_id}`} />
-    </Helmet>
+
 
       <div className="flex items-center space-x-1 text-primary">
         
