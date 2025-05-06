@@ -22,5 +22,12 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "https://aivisioncontest.com/:path*",
+      "destination": "https://www.aivisioncontest.com/:path*",
+      "permanent": true
+    }
   ]
 }

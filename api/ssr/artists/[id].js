@@ -23,8 +23,53 @@ export default async function handler(req, res) {
     // Logga för debugging
     console.log(`Artist found: ${artist.name}`);
     
+    // Om bilden kommer från S3 eller är en relativ URL, hämta en presignad URL
+    let presignedImageUrl = artist.image_url;
+    if (artist.image_url && (artist.image_url.includes('amazonaws.com') || !artist.image_url.startsWith('http'))) {
+      try {
+        // Hämta en presignad URL från backend om bilden behöver det
+        const presignEndpoint = `${BACKEND_URL.replace(/\/$/, '')}/presign-image?url=${encodeURIComponent(artist.image_url)}`;
+        console.log(`Fetching presigned URL from: ${presignEndpoint}`);
+        
+        const imageResponse = await fetch(presignEndpoint, {
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (imageResponse.ok) {
+          const imageData = await imageResponse.json();
+          presignedImageUrl = imageData.presignedUrl || imageData.url;
+          console.log(`Got presigned image URL: ${presignedImageUrl}`);
+          
+          // Testa om presigned URL fungerar
+          try {
+            const imgTestResponse = await fetch(presignedImageUrl, { 
+              method: 'HEAD',
+              timeout: 2000
+            });
+            if (!imgTestResponse.ok) {
+              console.error(`Image URL returned status: ${imgTestResponse.status}`);
+              presignedImageUrl = 'https://www.aivisioncontest.com/og-image.png';
+            }
+          } catch (imgTestError) {
+            console.error(`Error testing image URL: ${imgTestError.message}`);
+            // Behåll den presignade URL:en trots fel, det kan fortfarande fungera för Facebook
+          }
+        } else {
+          console.error(`Failed to get presigned URL: ${imageResponse.status}`);
+          // Fallback till en säker bild
+          presignedImageUrl = 'https://www.aivisioncontest.com/og-image.png';
+        }
+      } catch (imageError) {
+        console.error(`Error getting presigned URL: ${imageError.message}`);
+        presignedImageUrl = 'https://www.aivisioncontest.com/og-image.png';
+      }
+    }
+    
     // Sanitera innehåll för att undvika XSS
     const sanitizeHtml = (str) => {
+      if (!str) return '';
       return str
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -35,7 +80,15 @@ export default async function handler(req, res) {
     
     const title = sanitizeHtml(artist.name || 'AI Artist');
     const description = sanitizeHtml(artist.background_story || 'Check out this AI artist');
-    const imageUrl = artist.image_url || 'https://www.aivisioncontest.com/og-image.png';
+    
+    // Säkerställ att bildURL alltid är en absolut URL med https
+    let imageUrl = presignedImageUrl;
+    if (!imageUrl || !imageUrl.startsWith('http')) {
+      imageUrl = 'https://www.aivisioncontest.com/og-image.png';
+    }
+    
+    // Logg för debugging
+    console.log(`Using image URL: ${imageUrl}`);
     
     res
       .status(200)
@@ -49,8 +102,11 @@ export default async function handler(req, res) {
     <meta property="og:title"       content="${title}" />
     <meta property="og:description" content="${description}" />
     <meta property="og:image"       content="${imageUrl}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta property="og:url"         content="https://www.aivisioncontest.com/artists/${id}" />
     <meta property="og:type"        content="website" />
+    <meta property="og:site_name"   content="AI Vision Contest" />
     <meta name="twitter:card"       content="summary_large_image" />
     <meta name="twitter:title"      content="${title}" />
     <meta name="twitter:description"content="${description}" />
