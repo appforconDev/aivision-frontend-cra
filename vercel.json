@@ -1,12 +1,12 @@
 {
   "rewrites": [
     {
-      "source": "/artists/:id+",
+      "source": "/artists/:id",
       "has": [
         {
           "type": "header",
           "key": "user-agent",
-          "value": "facebookexternalhit"
+          "value": "(facebookexternalhit|Twitterbot|LinkedInBot)"
         }
       ],
       "destination": "/api/ssr/artists/:id"
