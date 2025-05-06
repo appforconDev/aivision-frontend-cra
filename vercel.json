@@ -1,13 +1,22 @@
-
 {
-    "rewrites": [
-      {
-        "source": "/artists/:id*",
-        "has": [
-          { "type": "header", "key": "user-agent", "value": "(facebookexternalhit|Twitterbot|LinkedInBot)" }
-        ],
-        "destination": "https://service.prerender.io/https://aivisioncontest.com/artists/:id*"
+  "routes": [
+    {
+      
+      "src": "/artists/(.*)",
+     
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(facebookexternalhit|Twitterbot|LinkedInBot)"
+        }
+      ],
+   
+      "dest": "https://service.prerender.io/https://aivisioncontest.com/artists/$1",
+
+      "headers": {
+        "x-prerender-token": "@PRERENDER_TOKEN"
       }
-    ]
-  }
-  
+    }
+  ]
+}
