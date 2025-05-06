@@ -1,15 +1,15 @@
 {
   "rewrites": [
     {
-      "source": "/artists/:id*",
+      "source": "/artists/:id([a-f0-9-]+)",
       "has": [
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(?i)(facebookexternalhit|twitterbot|pinterest|linkedinbot|whatsapp|slackbot)"
+          "value": "(?i).*(facebookexternalhit|twitterbot|pinterest).*"
         }
       ],
-      "destination": "/api/ssr/artists/:id*"
+      "destination": "/api/ssr/artists/:id"
     }
   ],
   "headers": [
@@ -18,17 +18,9 @@
       "headers": [
         { 
           "key": "Cache-Control", 
-          "value": "s-maxage=3600, stale-while-revalidate" 
+          "value": "public, s-maxage=3600, stale-while-revalidate" 
         }
       ]
-    }
-  ],
-  "redirects": [
-    {
-      "source": "/:path*",
-      "has": [{ "type": "host", "value": "aivisioncontest.com" }],
-      "destination": "https://www.aivisioncontest.com/:path*",
-      "permanent": true
     }
   ]
 }
