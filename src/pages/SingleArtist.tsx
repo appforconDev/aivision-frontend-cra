@@ -157,61 +157,7 @@ const SingleArtist = () => {
   };
 
 
-  const updateMetaTags = (
-    title: string,
-    description: string,
-    imageUrl: string,
-    url: string
-  ): void => {
-  
-    document.title = title;
-  
-  
-    type MetaTag = {
-      name?: string;
-      property?: string;
-      content: string;
-    };
-    
-    const updateMetaTags = (
-      title: string,
-      description: string,
-      imageUrl: string,
-      url: string
-    ): void => {
-      document.title = title;
-    
-      const metaTags = new Map<string, MetaTag>([
-        ["description", { name: "description", content: description }],
-        ["og:title", { property: "og:title", content: title }],
-        ["og:description", { property: "og:description", content: description }],
-        ["og:image", { property: "og:image", content: imageUrl }],
-        ["og:url", { property: "og:url", content: url }],
-        ["og:type", { property: "og:type", content: "website" }],
-        ["twitter:card", { name: "twitter:card", content: "summary_large_image" }],
-        ["twitter:title", { name: "twitter:title", content: title }],
-        ["twitter:description", { name: "twitter:description", content: description }],
-        ["twitter:image", { name: "twitter:image", content: imageUrl }],
-      ]);
-    
-      metaTags.forEach((tag: MetaTag, key: string) => {
-        let element = document.querySelector(`meta[${tag.property ? "property" : "name"}="${key}"]`);
-    
-        if (!element) {
-          element = document.createElement("meta");
-          if (tag.property) {
-            element.setAttribute("property", tag.property);
-          } else if (tag.name) {
-            element.setAttribute("name", tag.name);
-          }
-          document.head.appendChild(element);
-        }
-    
-        element.setAttribute("content", tag.content);
-      });
-    };
-    
-  };
+
 
   // Fetch artist data
   useEffect(() => {
@@ -224,13 +170,7 @@ const SingleArtist = () => {
         // Update currentPoints after artist is loaded
         setCurrentPoints(artistData.points);
 
-        // Uppdatera metataggar
-        updateMetaTags(
-          `${artistData.name} - AI Vision Contest`,
-          artistData.background_story,
-          artistData.image_url,
-          `https://www.aivisioncontest.com/artists/${artistData.artist_id}`
-        );
+       
 
         // Check if background_story is a URL
         if (typeof artistData.background_story === 'string' && artistData.background_story.startsWith('http')) {

@@ -1,0 +1,16 @@
+{
+    "routes": [
+      {
+        "src": "/artists/(.*)",
+        "has": [
+          {
+            "type": "header",
+            "key": "user-agent",
+            "value": "(facebookexternalhit|Twitterbot|LinkedInBot)"
+          }
+        ],
+        "dest": "/api/ssr/artists/$1"
+      }
+    ]
+  }
+  
