@@ -9,7 +9,7 @@
           "value": "(facebookexternalhit|Twitterbot|LinkedInBot|WhatsApp|Pinterest|Slackbot|TelegramBot|Google.*snippet)"
         }
       ],
-      "destination": "/api/ssr/artists/:id"
+      "destination": "/api/ssr/artists/:id*"
     }
   ],
   "headers": [
