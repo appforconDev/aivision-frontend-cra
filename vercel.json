@@ -4,8 +4,8 @@
       "source": "/artists/:id*",
       "has": [
         {
-          "type":  "header",
-          "key":   "user-agent",
+          "type": "header",
+          "key": "user-agent",
           "value": "(facebookexternalhit|Twitterbot|LinkedInBot|WhatsApp|Pinterest|Slackbot|TelegramBot|Google.*snippet)"
         }
       ],
@@ -14,15 +14,18 @@
   ],
   "headers": [
     {
-      "source":    "/api/ssr/artists/:id*",
+      "source": "/api/ssr/artists/:id*",
       "headers": [
-        { "key": "Cache-Control", "value": "s-maxage=3600, stale-while-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "s-maxage=3600, stale-while-revalidate"
+        }
       ]
     }
   ],
   "redirects": [
     {
-      "source": "/:path*",              
+      "source": "/:path*",
       "has": [
         { "type": "host", "value": "aivisioncontest.com" }
       ],
