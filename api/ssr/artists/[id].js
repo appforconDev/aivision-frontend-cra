@@ -36,24 +36,27 @@ const generateHtmlResponse = ({ id, title, desc, imageUrl }) => `<!DOCTYPE html>
 </body>
 </html>`;
 
+
+
 export default async function handler(req, res) {
-  console.log('Incoming request headers:', req.headers);
-  console.log('User-Agent:', req.headers['user-agent']);
-   // Set caching headers
-   res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate");
-   res.setHeader("Content-Type", "text/html; charset=utf-8");
+  // Sätt headers först
+  res.setHeader('Vercel-CDN-Cache-Control', 's-maxage=3600');
+  res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+
   try {
     const { id } = req.query;
     const BACKEND_URL = process.env.BACKEND_URL;
 
-   
+    // Logga för felsökning
+    console.log('Incoming User-Agent:', req.headers['user-agent']);
+    console.log('Fetching artist:', id);
 
-    // 1) Fetch artist data
     const artistResponse = await fetch(`${BACKEND_URL}/artist/${id}`);
-    if (!artistResponse.ok) {
-      throw new Error("Artist not found");
-    }
+    if (!artistResponse.ok) throw new Error("Artist not found");
+    
     const artist = await artistResponse.json();
+    console.log('Artist data:', JSON.stringify(artist, null, 2));
 
     // 2) Handle image URL (presign if needed)
     let imageUrl = artist.image_url;

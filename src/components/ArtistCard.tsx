@@ -51,7 +51,7 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
   const shareText = `Kolla in ${artist.name} på min webbplats!`;
   const [username, setUsername] = useState<string>("");
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
-
+  console.log('Fetching artist ID:', artist.artist_id);
   const cardClass = useMemo(() => {
     return `p-4 glass border-white/20 max-w-xs sm:max-w-md lg:max-w-2xl ${useNeonBorder ? 'neon-border' : ''} rounded-lg`;
   }, [useNeonBorder]);
