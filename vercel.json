@@ -6,7 +6,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(facebookexternalhit|Twitterbot|Pinterest|LinkedInBot|WhatsApp|Slackbot)"
+          "value": "(?i)(facebookexternalhit|twitterbot|pinterest|linkedinbot|whatsapp|slackbot)"
         }
       ],
       "destination": "/api/ssr/artists/:id*"
@@ -16,7 +16,10 @@
     {
       "source": "/api/ssr/artists/:id*",
       "headers": [
-        { "key": "Cache-Control", "value": "s-maxage=3600, stale-while-revalidate" }
+        { 
+          "key": "Cache-Control", 
+          "value": "s-maxage=3600, stale-while-revalidate" 
+        }
       ]
     }
   ],
