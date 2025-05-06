@@ -47,7 +47,7 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
   const [userRating, setUserRating] = useState<number | undefined>(undefined);
   const [averageRating, setAverageRating] = useState<AverageRating | null>(null);
   const [showFullStory, setShowFullStory] = useState(false);
-  const shareUrl = `https://aivisioncontest.com/artist/${artist.artist_id}`;
+  const shareUrl = `https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`;
   const shareText = `Kolla in ${artist.name} på min webbplats!`;
   const [username, setUsername] = useState<string>("");
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
@@ -241,6 +241,20 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
     }
   }, [artist.status, artist.song_url]);
 
+  const handleSocialClick = (e: React.MouseEvent, platform: string) => {
+    e.stopPropagation();
+    const ua = navigator.userAgent;
+    const isCrawler = /facebookexternalhit|Twitterbot|Pinterest/i.test(ua);
+    
+    if (isCrawler) {
+      window.open(
+        `https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`,
+        '_blank'
+      );
+    }
+    // Normal sharing will proceed via the href
+  };
+
   return (
   <Card className={cardClass} onClick={() => navigate(`/artists/${artist.artist_id}`)}>
     <div className="flex items-center justify-between mb-4">
@@ -364,20 +378,113 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
 
       <div className="flex items-center justify-between">
       <div className="flex items-center gap-x-4">
-  <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer">
-    <FaFacebookF className="h-6 w-6 text-white/40 hover:text-white/80 transition-colors" />
+  {/* Facebook */}
+  <a
+    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`)}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    onClick={(e) => {
+      e.stopPropagation();
+      window.open(
+        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`)}`,
+        'popup',
+        'width=600,height=500'
+      );
+      e.preventDefault();
+    }}
+    className="hover:text-[#1877F2] transition-colors"
+  >
+    <FaFacebookF className="h-6 w-6 text-white/80 hover:text-[#1877F2] transition-colors" />
   </a>
-  <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer">
-    <FaTwitter className="h-6 w-6 text-white/40 hover:text-white/80 transition-colors" />
+
+  {/* Twitter */}
+  <a
+    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`)}&text=${encodeURIComponent(`Check out ${artist.name} on AI Vision Contest`)}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    onClick={(e) => {
+      e.stopPropagation();
+      window.open(
+        `https://twitter.com/intent/tweet?url=${encodeURIComponent(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`)}&text=${encodeURIComponent(`Check out ${artist.name} on AI Vision Contest`)}`,
+        'popup',
+        'width=600,height=500'
+      );
+      e.preventDefault();
+    }}
+    className="hover:text-[#1DA1F2] transition-colors"
+  >
+    <FaTwitter className="h-6 w-6 text-white/80 hover:text-[#1DA1F2] transition-colors" />
   </a>
-  <a href={`https://www.instagram.com`} target="_blank" rel="noopener noreferrer">
-    <FaInstagram className="h-6 w-6 text-white/40 hover:text-white/80 transition-colors" />
+
+  {/* Instagram - Note: Instagram doesn't support direct sharing */}
+  <a
+    href={`https://instagram.com`}
+    target="_blank"
+    rel="noopener noreferrer"
+    onClick={(e) => {
+      e.stopPropagation();
+      toast({
+        title: "Share to Instagram",
+        description: "Copy this link to share in your Instagram story",
+        action: (
+          <button onClick={() => {
+            navigator.clipboard.writeText(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`);
+            toast({ title: "Link copied!" });
+          }}>
+            Copy Link
+          </button>
+        ),
+      });
+      e.preventDefault();
+    }}
+    className="hover:text-[#E1306C] transition-colors"
+  >
+    <FaInstagram className="h-6 w-6 text-white/80 hover:text-[#E1306C] transition-colors" />
   </a>
-  <a href={`https://www.tiktok.com`} target="_blank" rel="noopener noreferrer">
-    <FaTiktok className="h-6 w-6 text-white/40 hover:text-white/80 transition-colors" />
+
+  {/* TikTok - Note: TikTok doesn't support direct sharing */}
+  <a
+    href={`https://www.tiktok.com`}
+    target="_blank"
+    rel="noopener noreferrer"
+    onClick={(e) => {
+      e.stopPropagation();
+      toast({
+        title: "Share to TikTok",
+        description: "Copy this link to share in your TikTok",
+        action: (
+          <button onClick={() => {
+            navigator.clipboard.writeText(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`);
+            toast({ title: "Link copied!" });
+          }}>
+            Copy Link
+          </button>
+        ),
+      });
+      e.preventDefault();
+    }}
+    className="hover:text-[#FE2C55] transition-colors"
+  >
+    <FaTiktok className="h-6 w-6 text-white/80 hover:text-[#FE2C55] transition-colors" />
   </a>
-  <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer">
-    <FaLinkedin className="h-6 w-6 text-white/40 hover:text-white/80 transition-colors" />
+
+  {/* LinkedIn */}
+  <a
+    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`)}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    onClick={(e) => {
+      e.stopPropagation();
+      window.open(
+        `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`)}`,
+        'popup',
+        'width=600,height=500'
+      );
+      e.preventDefault();
+    }}
+    className="hover:text-[#0A66C2] transition-colors"
+  >
+    <FaLinkedin className="h-6 w-6 text-white/80 hover:text-[#0A66C2] transition-colors" />
   </a>
 </div>
 
