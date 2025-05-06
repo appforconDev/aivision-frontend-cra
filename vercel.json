@@ -2,20 +2,20 @@
 {
   "rewrites": [
     {
-      "source": "/artists/:id+",         
+      "source": "/artists/:id*",               
       "has": [
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(?i)(facebookexternalhit|twitterbot|linkedinbot|whatsapp|pinterest|slackbot|telegrambot|google.*snippet)"
+          "value": "(facebookexternalhit|Twitterbot|LinkedInBot|WhatsApp|Pinterest|Slackbot|TelegramBot|Google.*snippet)"
         }
       ],
-      "destination": "/api/ssr/artists/:id"
+      "destination": "/api/ssr/artists/:id*"  
     }
   ],
   "headers": [
     {
-      "source": "/api/ssr/artists/:id",
+      "source": "/api/ssr/artists/:id*",
       "headers": [
         { "key": "Cache-Control", "value": "s-maxage=3600, stale-while-revalidate" }
       ]
