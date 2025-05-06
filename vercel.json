@@ -1,16 +1,16 @@
+
 {
-    "routes": [
-      {
-        "src": "/artists/(.*)",
-        "has": [
-          {
-            "type": "header",
-            "key": "user-agent",
-            "value": "(facebookexternalhit|Twitterbot|LinkedInBot)"
-          }
-        ],
-        "dest": "/api/ssr/artists/$1"
-      }
-    ]
-  }
-  
+  "rewrites": [
+    {
+      "source": "/artists/:id",
+      "has": [
+        {
+          "type":   "header",
+          "key":    "user-agent",
+          "value":  "(facebookexternalhit|Twitterbot|LinkedInBot)"
+        }
+      ],
+      "destination": "/api/ssr/artists/:id"
+    }
+  ]
+}
