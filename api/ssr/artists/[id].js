@@ -6,14 +6,14 @@ export default async function handler(req, res) {
     const BACKEND_URL = process.env.BACKEND_URL;
 
     // 1) Hämta artist
-    const apiRes = await fetch(`${BACKEND_URL}/api/artist/${id}`);
+    const apiRes = await fetch(`${BACKEND_URL}/artist/${id}`);
     if (!apiRes.ok) throw new Error("Artist not found");
     const artist = await apiRes.json();
 
     // 2) Presigna bild om behövs (fallback annars)
     let imageUrl = artist.image_url;
     if (imageUrl && imageUrl.includes("amazonaws.com")) {
-      const pre = await fetch(`${BACKEND_URL}/api/presign-image?url=${encodeURIComponent(imageUrl)}`);
+      const pre = await fetch(`${BACKEND_URL}/presign-image?url=${encodeURIComponent(imageUrl)}`);
       if (pre.ok) {
         const { presignedUrl } = await pre.json();
         imageUrl = presignedUrl;
