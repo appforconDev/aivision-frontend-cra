@@ -7,11 +7,11 @@ export default async function handler(req, res) {
     // Använd process.env direkt i serverless-funktioner, inte REACT_APP_ prefix
     const BACKEND_URL = process.env.BACKEND_URL || process.env.REACT_APP_BACKEND_URL || 'https://sunny-laughter-production-4c2c.up.railway.app/api';
     
-    console.log(`Fetching artist data for id: ${id} from ${BACKEND_URL}/artists/${id}`);
+    console.log(`Fetching artist data for id: ${id} from ${BACKEND_URL}/artist/${id}`);
     
     // Hämta artistdata från ditt backend med felhantering
     const response = await fetch(
-      `${BACKEND_URL.replace(/\/$/, '')}/artists/${id}`
+      `${BACKEND_URL.replace(/\/$/, '')}/artist/${id}`
     );
     
     if (!response.ok) {
