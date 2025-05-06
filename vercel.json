@@ -1,9 +1,14 @@
-
 {
   "rewrites": [
     {
-      "source": "/artists/:id+",         
-      
+      "source": "/artists/:id+",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "facebookexternalhit"
+        }
+      ],
       "destination": "/api/ssr/artists/:id"
     }
   ],
