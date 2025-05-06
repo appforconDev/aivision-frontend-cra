@@ -37,13 +37,16 @@ const generateHtmlResponse = ({ id, title, desc, imageUrl }) => `<!DOCTYPE html>
 </html>`;
 
 export default async function handler(req, res) {
+  console.log('Incoming request headers:', req.headers);
+  console.log('User-Agent:', req.headers['user-agent']);
+   // Set caching headers
+   res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate");
+   res.setHeader("Content-Type", "text/html; charset=utf-8");
   try {
     const { id } = req.query;
     const BACKEND_URL = process.env.BACKEND_URL;
 
-    // Set caching headers
-    res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate");
-    res.setHeader("Content-Type", "text/html; charset=utf-8");
+   
 
     // 1) Fetch artist data
     const artistResponse = await fetch(`${BACKEND_URL}/artist/${id}`);

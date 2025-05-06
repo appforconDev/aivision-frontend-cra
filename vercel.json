@@ -1,13 +1,35 @@
 {
   "rewrites": [
     {
-      "source": "/test-route",
-      "has": [{
-        "type": "header",
-        "key": "user-agent",
-        "value": "(?i)facebookexternalhit"
-      }],
-      "destination": "/api/ssr/test"
+      "source": "/artists/:id*",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|Twitterbot|Pinterest).*"
+        }
+      ],
+      "destination": "/api/ssr/artists/:id*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/ssr/artists/:path*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=3600, stale-while-revalidate"
+        }
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "src": "/artists/.*",
+      "headers": {
+        "Cache-Control": "no-store"
+      },
+      "continue": true
     }
   ]
 }
