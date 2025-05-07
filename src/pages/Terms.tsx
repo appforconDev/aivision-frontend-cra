@@ -78,6 +78,16 @@ const Terms = () => {
               These Terms and Conditions are governed by and construed in accordance with the laws of Sweden. Any disputes arising from these Terms shall be resolved exclusively in the courts of Sweden.
             </p>
 
+            <h2 className="text-xl font-bold text-white mt-4">10. Prize Payments and Tax Responsibility</h2>
+            <p className="text-white/60">
+            Prizes are paid out in U.S. Dollars via Stripe Connect to the payment account you provide.  
+You are solely responsible for reporting and paying all taxes, duties, or levies that may be due in your jurisdiction. Winbergh Media will not withhold or remit taxes on your behalf unless required by law.  
+If cumulative prizes exceed USD 600 (or local equivalent) in a calendar year, Winbergh Media may request additional identification (KYC) and issue any tax forms required by applicable law (e.g., IRS Form 1099-MISC for U.S. residents).  
+Prizes are awarded in a skill-based contest. No element of chance determines the winners. Residents of jurisdictions where such contests are prohibited are ineligible.  
+ All currency conversion costs, bank fees, and other charges related to receiving the prize are your responsibility.
+
+            </p>
+
             <p className="text-white/60 mt-6">
               If you have any questions about these Terms, please contact us at{" "}
               <a href="mailto:support@winberghmedia.com" className="text-primary hover:underline">

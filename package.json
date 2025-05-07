@@ -52,6 +52,7 @@
     "embla-carousel-react": "^8.3.0",
     "flag-icon-css": "^4.1.7",
     "framer-motion": "^12.4.3",
+    "html2canvas": "^1.4.1",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.462.0",
     "motion-dom": "^12.9.6",
