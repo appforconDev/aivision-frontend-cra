@@ -27,7 +27,7 @@ const Checkout = () => {
       const { error } = await stripe!.confirmPayment({
         clientSecret,
         confirmParams: {
-          return_url: "http://localhost:3000/payment-success", // Navigera till PaymentSuccess efter betalning
+          return_url: "https://www.aivisioncontest.com/", // Navigera till PaymentSuccess efter betalning
         },
       });
 
