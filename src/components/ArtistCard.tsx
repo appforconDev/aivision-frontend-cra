@@ -293,9 +293,11 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
   };
 
   const handleInstagramShare = (e: React.MouseEvent) => {
+    console.log('Instagram button clicked'); 
     e.stopPropagation();
+    toast({ title: "Test", description: "Button is working" });
     e.preventDefault();
-
+  
     toast({
       title: "Share to Instagram",
       description: (
@@ -303,9 +305,7 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
           <button
             onClick={async () => {
               try {
-                await navigator.clipboard.writeText(
-                  `https://www.aivisioncontest.com/artists/${artist.artist_id}`
-                );
+                await navigator.clipboard.writeText(shareUrl);
                 toast({
                   title: "Link copied to clipboard!",
                   className: "text-green-500 [&>button]:text-green-500",
@@ -332,7 +332,6 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
       ),
     });
   };
-  
 
   return (
   <Card className={cardClass} onClick={() => navigate(`/artists/${artist.artist_id}`)}>
@@ -459,77 +458,73 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
       <div className="flex items-center gap-x-4">
   {/* Facebook */}
   <a
-    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`)}`}
+    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`}
     target="_blank"
     rel="noopener noreferrer"
     onClick={(e) => {
       e.stopPropagation();
       window.open(
-        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`)}`,
+        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
         'popup',
         'width=600,height=500'
       );
       e.preventDefault();
     }}
-    className="hover:text-[#1877F2] transition-colors"
   >
     <FaFacebookF className="h-6 w-6 text-white/80 hover:text-[#1877F2] transition-colors" />
   </a>
 
   {/* Twitter */}
   <a
-    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`)}&text=${encodeURIComponent(`Check out ${artist.name} on AI Vision Contest`)}`}
+    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`}
     target="_blank"
     rel="noopener noreferrer"
     onClick={(e) => {
       e.stopPropagation();
       window.open(
-        `https://twitter.com/intent/tweet?url=${encodeURIComponent(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`)}&text=${encodeURIComponent(`Check out ${artist.name} on AI Vision Contest`)}`,
+        `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
         'popup',
         'width=600,height=500'
       );
       e.preventDefault();
     }}
-    className="hover:text-[#1DA1F2] transition-colors"
   >
     <FaTwitter className="h-6 w-6 text-white/80 hover:text-[#1DA1F2] transition-colors" />
   </a>
 
-  {/* Instagram - Note: Instagram doesn't support direct sharing */}
-  <a
-        href="#"
-        onClick={handleInstagramShare}
-        className="inline-block p-2 hover:text-[#E1306C] transition-colors"
-      >
-        <FaInstagram className="h-6 w-6 text-white/80 hover:text-[#E1306C]" />
-      </a>
+  {/* Instagram - Ny implementation */}
+  <button
+    onClick={handleInstagramShare}
+    className="p-2 hover:text-[#E1306C] transition-colors"
+    aria-label="Share on Instagram"
+  >
+    <FaInstagram className="h-6 w-6 text-white/80 hover:text-[#E1306C]" />
+  </button>
 
-  {/* TikTok - Note: TikTok doesn't support direct sharing */}
-  <a
-    href={`https://www.tiktok.com`}
-    target="_blank"
-    rel="noopener noreferrer"
+  {/* TikTok */}
+  <button
     onClick={(e) => {
       e.stopPropagation();
       toast({
         title: "Share to TikTok",
         description: "Copy this link to share in your TikTok",
         action: (
-          <button onClick={() => {
-            navigator.clipboard.writeText(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`);
-            toast({ title: "Link copied!" });
-          }}>
+          <button 
+            onClick={() => {
+              navigator.clipboard.writeText(shareUrl);
+              toast({ title: "Link copied!" });
+            }}
+            className="px-2 py-1 bg-secondary text-secondary-foreground rounded"
+          >
             Copy Link
           </button>
         ),
       });
-      e.preventDefault();
     }}
-    className="hover:text-[#FE2C55] transition-colors"
+    className="p-2 hover:text-[#FE2C55] transition-colors"
   >
-    <FaTiktok className="h-6 w-6 text-white/80 hover:text-[#FE2C55] transition-colors" />
-  </a>
-
+    <FaTiktok className="h-6 w-6 text-white/80 hover:text-[#FE2C55]" />
+  </button>
 </div>
 
 
