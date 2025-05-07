@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Card } from "components/ui/card";
 import { Award, Music, MapPin, Loader2, Star, Facebook, Twitter, Linkedin, Trash, X, Instagram } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -8,7 +8,7 @@ import MusicStatusHandler from "./MusicStatusHandler";
 import { Artist, AverageRating } from './types';
 import StarRating from './StarRating';
 import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedin, FaTiktok } from 'react-icons/fa';
-
+import html2canvas from 'html2canvas';
 
 interface ArtistCardProps {
   artist: Artist,
@@ -254,7 +254,84 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
     }
     // Normal sharing will proceed via the href
   };
+  const cardRef = useRef<HTMLDivElement>(null);
 
+  const handleSaveImage = async () => {
+    if (!cardRef.current) return;
+    
+    try {
+      // Visa laddningsmeddelande
+      toast({
+        title: "Generating image...",
+        description: "Please wait while we create your shareable image",
+      });
+
+      const canvas = await html2canvas(cardRef.current, {
+        backgroundColor: '#0A0A0F',
+        scale: 2
+      });
+      
+      const link = document.createElement('a');
+      link.download = `${artist.name.replace(/\s+/g, '_')}_AI_Artist.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      // Visa succémeddelande (använder default variant med grön text)
+      toast({
+        title: "Image saved!",
+        description: "You can now share it on Instagram or TikTok",
+        className: "text-green-500 [&>button]:text-green-500", // Anpassad styling
+      });
+    } catch (error) {
+      console.error('Error saving image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save image",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleInstagramShare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    toast({
+      title: "Share to Instagram",
+      description: (
+        <div className="flex flex-col space-y-3 mt-2">
+          <button
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(
+                  `https://www.aivisioncontest.com/artists/${artist.artist_id}`
+                );
+                toast({
+                  title: "Link copied to clipboard!",
+                  className: "text-green-500 [&>button]:text-green-500",
+                });
+              } catch (error) {
+                toast({
+                  title: "Failed to copy link",
+                  variant: "destructive",
+                });
+              }
+            }}
+            className="px-3 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80"
+          >
+            Copy Profile Link
+          </button>
+          <button
+            onClick={handleSaveImage}
+            className="px-3 py-2 bg-[#E1306C] text-white rounded-md hover:bg-[#C13584] flex items-center justify-center"
+          >
+            <FaInstagram className="mr-2" />
+            Save Image for Story
+          </button>
+        </div>
+      ),
+    });
+  };
   
 
   return (
@@ -420,29 +497,12 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
 
   {/* Instagram - Note: Instagram doesn't support direct sharing */}
   <a
-    href={`https://instagram.com`}
-    target="_blank"
-    rel="noopener noreferrer"
-    onClick={(e) => {
-      e.stopPropagation();
-      toast({
-        title: "Share to Instagram",
-        description: "Copy this link to share in your Instagram story",
-        action: (
-          <button onClick={() => {
-            navigator.clipboard.writeText(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`);
-            toast({ title: "Link copied!" });
-          }}>
-            Copy Link
-          </button>
-        ),
-      });
-      e.preventDefault();
-    }}
-    className="hover:text-[#E1306C] transition-colors"
-  >
-    <FaInstagram className="h-6 w-6 text-white/80 hover:text-[#E1306C] transition-colors" />
-  </a>
+        href="#"
+        onClick={handleInstagramShare}
+        className="inline-block p-2 hover:text-[#E1306C] transition-colors"
+      >
+        <FaInstagram className="h-6 w-6 text-white/80 hover:text-[#E1306C]" />
+      </a>
 
   {/* TikTok - Note: TikTok doesn't support direct sharing */}
   <a
