@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card } from "../components/ui/card";
-import { Music, Award, Loader2, MapPin, Star } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import ArtistCard from "../components/ArtistCard";
@@ -30,9 +29,7 @@ const Leaderboard = () => {
     const user_id = localStorage.getItem("user_id");
     const initializeData = async () => {
       await fetchTopArtists();
-      if (user_id) {
-        await fetchFavorites(user_id);
-      }
+      if (user_id) await fetchFavorites(user_id);
     };
     initializeData();
   }, []);
@@ -54,18 +51,14 @@ const Leaderboard = () => {
       const resp = await axios.get(`${backendUrl}/artists`, {
         params: {
           page: 1,
-          per_page: 10,      // Hämta 10 artister
+          per_page: 10,
           sort: "desc",
         },
       });
-
       if (Array.isArray(resp.data.artists)) {
         setArtists(resp.data.artists);
-        resp.data.artists.forEach((artist: Artist) => {
-          fetchAverageRating(artist.artist_id);
-        });
+        resp.data.artists.forEach((a: Artist) => fetchAverageRating(a.artist_id));
       } else {
-        console.warn("No artists found in response");
         setArtists([]);
       }
     } catch (err) {
@@ -125,35 +118,37 @@ const Leaderboard = () => {
     );
   }
 
-  // Dela upp i leader och resten
+  // Dela upp listan
   const leader = artists[0];
   const others = artists.slice(1);
 
   return (
     <div className="min-h-screen bg-[#0A0A0F] py-24 px-4">
-      <div className="max-w-full sm:max-w-[94%] md:max-w-[94%] lg:max-w-[94%] xl:max-w-[94%] mx-auto w-[94%]">
-        <div className="flex flex-col justify-center items-center text-center mb-8 mx-auto">
+      <div className="max-w-[94%] mx-auto">
+        {/* Titel & intro */}
+        <div className="flex flex-col items-center text-center mb-8">
           <h1 className="text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-secondary">
             LeaderBoard
           </h1>
           <p className="text-xl mb-8 max-w-2xl text-white/80">
-            Welcome to the exclusive Leaderboard showcasing the top 10 AI artists from around the
-            globe, each excelling in their unique musical expressions. This elite group represents
-            the pinnacle of AI-driven musical talent, distinguished by their high scores and
-            innovative sounds. Dive into the sounds that are setting the standards in the digital
-            music world, and see what makes these artists stand out in the competitive arena of AI
-            music.
+            Welcome to the exclusive Leaderboard showcasing the top 10 AI
+            artists from around the globe, each excelling in their unique musical expressions.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Leadern */}
           {leader && (
-            <div className="md:col-span-3 transform scale-105">
+            <div className="md:col-span-3 flex justify-center mb-6 relative">
+              {/* Placering-badge */}
+              <span className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-sm font-bold px-2 py-1 rounded">
+                #1
+              </span>
               <ArtistCard
                 key={leader.artist_id}
                 artist={leader}
                 averageRating={averageRatings[leader.artist_id]}
-                onArtistUpdate={() => {}}
+                onArtistUpdate={handleArtistUpdate}
                 isFavorite={favorites.includes(leader.artist_id)}
                 onToggleFavorite={toggleFavorite}
                 onSelectArtist={toggleArtistSelection}
@@ -165,20 +160,25 @@ const Leaderboard = () => {
             </div>
           )}
 
-          {others.map((artist) => (
-            <ArtistCard
-              key={artist.artist_id}
-              artist={artist}
-              averageRating={averageRatings[artist.artist_id]}
-              onArtistUpdate={() => {}}
-              isFavorite={favorites.includes(artist.artist_id)}
-              onToggleFavorite={toggleFavorite}
-              onSelectArtist={toggleArtistSelection}
-              isSelected={selectedArtists.includes(artist.artist_id)}
-              showSpotifyIcon={false}
-              showDeleteIcon={false}
-              backendUrl={backendUrl}
-            />
+          {/* Övriga */}
+          {others.map((artist, idx) => (
+            <div key={artist.artist_id} className="relative">
+              <span className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-sm font-bold px-2 py-1 rounded">
+                #{idx + 2}
+              </span>
+              <ArtistCard
+                artist={artist}
+                averageRating={averageRatings[artist.artist_id]}
+                onArtistUpdate={handleArtistUpdate}
+                isFavorite={favorites.includes(artist.artist_id)}
+                onToggleFavorite={toggleFavorite}
+                onSelectArtist={toggleArtistSelection}
+                isSelected={selectedArtists.includes(artist.artist_id)}
+                showSpotifyIcon={false}
+                showDeleteIcon={false}
+                backendUrl={backendUrl}
+              />
+            </div>
           ))}
         </div>
       </div>
