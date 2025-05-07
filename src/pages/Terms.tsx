@@ -14,7 +14,7 @@ const Terms = () => {
           <CardHeader>
             <CardTitle className="text-white">Terms and Conditions for AIVisionContest</CardTitle>
             <CardDescription className="text-white/60">
-              Welcome to AIVisionContest, a service provided by Winbergh Media ("we", "us", "our"). By using our web app and services, you agree to these Terms and Conditions. Please read the following terms carefully before using our service.
+              <p>Welcome to AIVisionContest, a service provided by Winbergh Media ("we", "us", "our"). By using our web app and services, you agree to these Terms and Conditions. Please read the following terms carefully before using our service.</p>
             </CardDescription>
           </CardHeader>
 
@@ -34,15 +34,13 @@ const Terms = () => {
 
             <h2 className="text-xl font-bold text-white mt-4">3. Royalty and Spotify Distribution</h2>
             <p className="text-white/60">
-              In connection with the AI-generated music created via our platform, two distribution models to Spotify are available:
+              In connection with the AI-generated music created via our platform, a distribution models to Spotify are available:
             </p>
             <ul className="list-disc ml-6 text-white/60">
               <li>
                 <strong>Standard Upload:</strong> If you choose to have your song uploaded to Spotify, you will be charged a one-time fee of $4.95. Under this model, you shall retain 100% of the royalties generated from your song on Spotify.
               </li>
-              <li>
-                <strong>Contest Winning:</strong> If your song wins one of the contests hosted on AIVisionContest, your song will be uploaded to Spotify free of charge. In this scenario, you shall retain 50% of the royalties generated from your song, with Winbergh Media retaining 50%.
-              </li>
+              
             </ul>
             <p className="text-white/60">
               By using our service, you acknowledge and agree to the applicable royalty distribution model. Winbergh Media reserves the right to modify these terms, with appropriate notice, as needed.
