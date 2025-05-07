@@ -80,12 +80,23 @@ const Terms = () => {
 
             <h2 className="text-xl font-bold text-white mt-4">10. Prize Payments and Tax Responsibility</h2>
             <p className="text-white/60">
-            Prizes are paid out in U.S. Dollars via Stripe Connect to the payment account you provide.  
-You are solely responsible for reporting and paying all taxes, duties, or levies that may be due in your jurisdiction. Winbergh Media will not withhold or remit taxes on your behalf unless required by law.  
-If cumulative prizes exceed USD 600 (or local equivalent) in a calendar year, Winbergh Media may request additional identification (KYC) and issue any tax forms required by applicable law (e.g., IRS Form 1099-MISC for U.S. residents).  
-Prizes are awarded in a skill-based contest. No element of chance determines the winners. Residents of jurisdictions where such contests are prohibited are ineligible.  
- All currency conversion costs, bank fees, and other charges related to receiving the prize are your responsibility.
+            Skill-Based Acknowledgement
+By entering this contest, you acknowledge that effective direction and use of AI tools to create original content requires significant skill and artistic judgment, and you agree that your submission reflects your expertise in this area.
 
+Intellectual-Property Ownership
+You retain ownership of the content generated through the use of AI tools, provided you comply with the terms of those tools and these contest rules. By submitting your entry, you grant Winbergh Media a non-exclusive, worldwide, royalty-free licence to use, reproduce, and display your entry for the purposes of administering and promoting the contest.
+
+Limitation of Liability & Indemnity
+Winbergh Media accepts no responsibility for the originality, legality, or accuracy of any AI-generated content submitted. You agree to indemnify and hold Winbergh Media harmless from all claims arising out of your submission, including—but not limited to—claims of intellectual-property infringement.
+
+User Responsibility
+You are solely responsible for the prompts you use and the resulting content. You warrant that your entry does not infringe any third-party rights, including copyright, and that you have complied with the terms of service of all AI tools employed.
+
+Compliance
+Your participation in this contest is subject to the full Terms & Conditions available at [link]. You are responsible for ensuring compliance with all applicable laws and regulations, including any tax obligations arising from prizes or royalties received.
+
+Prize-Money & Tax
+All prizes are paid in USD via Stripe. Winners are solely responsible for reporting and paying any taxes, duties, or levies arising from the prize in their country of residence; Winbergh Media will not withhold or remit taxes on your behalf unless required by law.
             </p>
 
             <p className="text-white/60 mt-6">
