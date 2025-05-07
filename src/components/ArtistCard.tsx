@@ -468,24 +468,6 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
     <FaTiktok className="h-6 w-6 text-white/80 hover:text-[#FE2C55] transition-colors" />
   </a>
 
-  {/* LinkedIn */}
-  <a
-    href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`)}`}
-    target="_blank"
-    rel="noopener noreferrer"
-    onClick={(e) => {
-      e.stopPropagation();
-      window.open(
-        `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`)}`,
-        'popup',
-        'width=600,height=500'
-      );
-      e.preventDefault();
-    }}
-    className="hover:text-[#0A66C2] transition-colors"
-  >
-    <FaLinkedin className="h-6 w-6 text-white/80 hover:text-[#0A66C2] transition-colors" />
-  </a>
 </div>
 
 
