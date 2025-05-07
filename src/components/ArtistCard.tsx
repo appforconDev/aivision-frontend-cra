@@ -342,208 +342,228 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
 
 
   return (
-  <Card className={cardClass} onClick={() => navigate(`/artists/${artist.artist_id}`)}>
-    <div className="flex items-center justify-between mb-4">
-      <Music className="h-6 w-6 text-primary" />
-      <div className="flex-grow flex justify-center">
-      <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white truncate max-w-xs text-center">
-        {artist.name}
-      </h2>
-    </div>
-
-
-      <div className="flex items-center space-x-1 text-primary">
-        
-        <span className="text-xl">{artist.points || 0} </span>
-        <Star className="h-6 w-6" />
-      </div>
-    </div>
-
-    {artist.image_url && (
-      <div className="mb-4 rounded-lg overflow-hidden">
-        <img
-          src={artist.image_url}
-          alt={artist.name}
-          className="w-full h-auto object-contain rounded-lg"
-          onError={(e) => {
-            console.error("Image load error for artist:", {
-              artistName: artist.name,
-              imageUrl: artist.image_url,
-              error: e,
-            });
-            e.currentTarget.style.display = "none";
-          }}
-        />
-      </div>
-    )}
-
-    {artist.status === "pending" && (
-      <div className="flex items-center justify-center space-x-2 text-white/60 mb-4">
-        <Loader2 className="h-5 w-5 animate-spin" />
-        <span>Generating content...</span>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            retryGeneration(artist.artist_id);
-          }}
-          className="ml-2 px-2 py-1 bg-primary/20 rounded hover:bg-primary/30 transition-colors"
-          disabled={generating}
-        >
-          {generating ? "Working..." : "Retry"}
-        </button>
-      </div>
-    )}
-
-    {artist.song_url ? (
-    <div className="mb-4 p-2 bg-black/20 rounded-md">
-    <h2 className="text-2xl font-semibold text-white mb-4 truncate max-w">
-      {artist.song_title ? artist.song_title.replace(/"/g, '') : "Latest Track"}
-    </h2>
-    <audio controls className="w-full">
-      <source src={artist.song_url} type="audio/mpeg" />
-      Your browser does not support the audio element.
-    </audio>
-  </div>
-    ) : showMusicStatus && (
-      <div className="mb-4 p-2 bg-black/20 rounded-md">
-        <MusicStatusHandler
-          artistId={artist.artist_id}
-          onMusicReady={handleMusicReady}
-          onError={handlePollingError}
-        />
-      </div>
-    )}
-
-    {averageRating && (
-      <div className="flex items-center space-x-2 mb-8">
-        <StarRating
-          artistId={artist.artist_id}
-          averageRating={averageRating.average_rating}
-          onVote={handleRate}
-          currentUserRating={userRating}
-        />
-        <span className="text-sm text-white/60">
-          ({averageRating.total_votes}  votes)
-        </span>
-      </div>
-    )}
-
-    <div className="w-full">
-      
-      <p className={`text-white/70 mb-4 ${showFullStory ? '' : 'line-clamp-4'}`}>
-        {artist.background_story}
-      </p>
-      <button
-        onClick={() => setShowFullStory(!showFullStory)}
-        className="text-primary text-sm"
-      >
-        {showFullStory ? 'See Less' : 'See More'}
-      </button>
-    </div>
-
-    <div className="text-sm text-white/40 pt-4">
-      <div className="flex justify-center mb-4">
-        <div className="flex items-center gap-x-3">
-          {username ? (
-            <Link
-              to={`/${artist.username}`}
-              onClick={(e) => e.stopPropagation()}
-              className="font-medium hover:text-white transition-colors"
-            >
-              {artist.username}
-            </Link>
-          ) : (
-            <span className="font-medium">My Artists</span>
-          )}
-          <MapPin className="h-4 w-4" />
-          <span>{artist.country}</span>
-          <span className="mx-2">|</span>
-          <span className="capitalize">{artist.music_style}</span>
+    <Card className={cardClass} onClick={() => navigate(`/artists/${artist.artist_id}`)}>
+      {/* Header: ikon, namn och poäng */}
+      <div className="flex items-center justify-between mb-4">
+        <Music className="h-6 w-6 text-primary" />
+        <div className="flex-grow flex justify-center">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white truncate max-w-xs text-center">
+            {artist.name}
+          </h2>
+        </div>
+        <div className="flex items-center space-x-1 text-primary">
+          <span className="text-xl">{artist.points || 0}</span>
+          <Star className="h-6 w-6" />
         </div>
       </div>
-
-      <div className="flex items-center justify-between">
-      <div className="flex items-center gap-x-4">
-  {/* Facebook */}
-  <a
-    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`)}`}
-    target="_blank"
-    rel="noopener noreferrer"
-    onClick={(e) => {
-      e.stopPropagation();
-      window.open(
-        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`)}`,
-        'popup',
-        'width=600,height=500'
-      );
-      e.preventDefault();
-    }}
-    className="hover:text-[#1877F2] transition-colors"
-  >
-    <FaFacebookF className="h-6 w-6 text-white/80 hover:text-[#1877F2] transition-colors" />
-  </a>
-
-  {/* Twitter */}
-  <a
-    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`)}&text=${encodeURIComponent(`Check out ${artist.name} on AI Vision Contest`)}`}
-    target="_blank"
-    rel="noopener noreferrer"
-    onClick={(e) => {
-      e.stopPropagation();
-      window.open(
-        `https://twitter.com/intent/tweet?url=${encodeURIComponent(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`)}&text=${encodeURIComponent(`Check out ${artist.name} on AI Vision Contest`)}`,
-        'popup',
-        'width=600,height=500'
-      );
-      e.preventDefault();
-    }}
-    className="hover:text-[#1DA1F2] transition-colors"
-  >
-    <FaTwitter className="h-6 w-6 text-white/80 hover:text-[#1DA1F2] transition-colors" />
-  </a>
-
-  {/* Instagram - Note: Instagram doesn't support direct sharing */}
-  <a
-        href="#"
-        onClick={handleInstagramShare}
-        className="inline-block p-2 hover:text-[#E1306C] transition-colors"
-        aria-label="Share on Instagram"
-      >
-        <FaInstagram className="h-6 w-6 text-white/80 hover:text-[#E1306C]" />
-      </a>
-    </div>
-
-  {/* TikTok - Note: TikTok doesn't support direct sharing */}
-  <a
-    href={`https://www.tiktok.com`}
-    target="_blank"
-    rel="noopener noreferrer"
-    onClick={(e) => {
-      e.stopPropagation();
-      toast({
-        title: "Share to TikTok",
-        description: "Copy this link to share in your TikTok",
-        action: (
-          <button onClick={() => {
-            navigator.clipboard.writeText(`https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`);
-            toast({ title: "Link copied!" });
-          }}>
-            Copy Link
+  
+      {/* Artist-bild */}
+      {artist.image_url && (
+        <div className="mb-4 rounded-lg overflow-hidden">
+          <img
+            src={artist.image_url}
+            alt={artist.name}
+            className="w-full h-auto object-contain rounded-lg"
+            onError={(e) => {
+              console.error("Image load error for artist:", {
+                artistName: artist.name,
+                imageUrl: artist.image_url,
+                error: e,
+              });
+              e.currentTarget.style.display = "none";
+            }}
+          />
+        </div>
+      )}
+  
+      {/* Genererings-status */}
+      {artist.status === "pending" && (
+        <div className="flex items-center justify-center space-x-2 text-white/60 mb-4">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span>Generating content...</span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              retryGeneration(artist.artist_id);
+            }}
+            className="ml-2 px-2 py-1 bg-primary/20 rounded hover:bg-primary/30 transition-colors"
+            disabled={generating}
+          >
+            {generating ? "Working..." : "Retry"}
           </button>
-        ),
-      });
-      e.preventDefault();
-    }}
-    className="hover:text-[#FE2C55] transition-colors"
-  >
-    <FaTiktok className="h-6 w-6 text-white/80 hover:text-[#FE2C55] transition-colors" />
-  </a>
-
-</div>
-
-
-
-        <div>
+        </div>
+      )}
+  
+      {/* Låt-/musikspelare */}
+      {artist.song_url ? (
+        <div className="mb-4 p-2 bg-black/20 rounded-md">
+          <h2 className="text-2xl font-semibold text-white mb-4 truncate max-w">
+            {artist.song_title ? artist.song_title.replace(/"/g, "") : "Latest Track"}
+          </h2>
+          <audio controls className="w-full">
+            <source src={artist.song_url} type="audio/mpeg" />
+            Your browser does not support the audio element.
+          </audio>
+        </div>
+      ) : (
+        showMusicStatus && (
+          <div className="mb-4 p-2 bg-black/20 rounded-md">
+            <MusicStatusHandler
+              artistId={artist.artist_id}
+              onMusicReady={handleMusicReady}
+              onError={handlePollingError}
+            />
+          </div>
+        )
+      )}
+  
+      {/* Betyg */}
+      {averageRating && (
+        <div className="flex items-center space-x-2 mb-8">
+          <StarRating
+            artistId={artist.artist_id}
+            averageRating={averageRating.average_rating}
+            onVote={handleRate}
+            currentUserRating={userRating}
+          />
+          <span className="text-sm text-white/60">
+            ({averageRating.total_votes} votes)
+          </span>
+        </div>
+      )}
+  
+      {/* Bakgrundstext och toggla full story */}
+      <div className="w-full">
+        <p className={`text-white/70 mb-4 ${showFullStory ? "" : "line-clamp-4"}`}>
+          {artist.background_story}
+        </p>
+        <button
+          onClick={() => setShowFullStory(!showFullStory)}
+          className="text-primary text-sm"
+        >
+          {showFullStory ? "See Less" : "See More"}
+        </button>
+      </div>
+  
+      {/* Användarinfo, sociala länkar och favoriter */}
+      <div className="text-sm text-white/40 pt-4">
+        {/* Användarnamn, land och genre */}
+        <div className="flex justify-center mb-4">
+          <div className="flex items-center gap-x-3">
+            {username ? (
+              <Link
+                to={`/${artist.username}`}
+                onClick={(e) => e.stopPropagation()}
+                className="font-medium hover:text-white transition-colors"
+              >
+                {artist.username}
+              </Link>
+            ) : (
+              <span className="font-medium">My Artists</span>
+            )}
+            <MapPin className="h-4 w-4" />
+            <span>{artist.country}</span>
+            <span className="mx-2">|</span>
+            <span className="capitalize">{artist.music_style}</span>
+          </div>
+        </div>
+  
+        {/* Sociala delnings-ikoner */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-x-4">
+            {/* Facebook */}
+            <a
+              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                `https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(
+                  `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                    `https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`
+                  )}`,
+                  "popup",
+                  "width=600,height=500"
+                );
+                e.preventDefault();
+              }}
+              className="hover:text-[#1877F2] transition-colors"
+            >
+              <FaFacebookF className="h-6 w-6 text-white/80 hover:text-[#1877F2] transition-colors" />
+            </a>
+  
+            {/* Twitter */}
+            <a
+              href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(
+                `https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`
+              )}&text=${encodeURIComponent(
+                `Check out ${artist.name} on AI Vision Contest`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(
+                  `https://twitter.com/intent/tweet?url=${encodeURIComponent(
+                    `https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`
+                  )}&text=${encodeURIComponent(
+                    `Check out ${artist.name} on AI Vision Contest`
+                  )}`,
+                  "popup",
+                  "width=600,height=500"
+                );
+                e.preventDefault();
+              }}
+              className="hover:text-[#1DA1F2] transition-colors"
+            >
+              <FaTwitter className="h-6 w-6 text-white/80 hover:text-[#1DA1F2] transition-colors" />
+            </a>
+  
+            {/* Instagram */}
+            <a
+              href="#"
+              onClick={handleInstagramShare}
+              className="inline-block p-2 hover:text-[#E1306C] transition-colors"
+              aria-label="Share on Instagram"
+            >
+              <FaInstagram className="h-6 w-6 text-white/80 hover:text-[#E1306C]" />
+            </a>
+          </div>
+  
+          {/* TikTok */}
+          <a
+            href="https://www.tiktok.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => {
+              e.stopPropagation();
+              toast({
+                title: "Share to TikTok",
+                description: "Copy this link to share in your TikTok",
+                action: (
+                  <button
+                    onClick={() =>
+                      navigator.clipboard.writeText(
+                        `https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`
+                      )
+                    }
+                  >
+                    Copy Link
+                  </button>
+                ),
+              });
+              e.preventDefault();
+            }}
+            className="hover:text-[#FE2C55] transition-colors"
+          >
+            <FaTiktok className="h-6 w-6 text-white/80 hover:text-[#FE2C55]" />
+          </a>
+        </div>
+  
+        {/* Favorit-knapp */}
+        <div className="flex justify-center mb-4">
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -552,6 +572,7 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
             className="p-1 hover:text-red-500 transition-colors"
           >
             {isFavorite ? (
+              /* Fylld hjärta */
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="currentColor"
@@ -567,6 +588,7 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
                 />
               </svg>
             ) : (
+              /* Tomt hjärta */
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -584,50 +606,48 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
             )}
           </button>
         </div>
-      </div>
-
-      {/* Spotify and Trash icons */}
-      {(showSpotifyIcon || showDeleteIcon) && (
-        <div className="flex justify-end mt-2">
-          {showSpotifyIcon && (
-             <button
-             onClick={(e) => {
-               e.stopPropagation(); // Förhindra att kortets onClick triggas
-               onSelectArtist(artist.artist_id);
-             }}
-             
-             className="flex items-center justify-center mx-2"
-           >
-              <svg
-                className={`h-6 w-6 ${
-                  isSelected ? "text-green-500" : "text-white/40"
-                } hover:text-green-600 transition-colors`}
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                xmlns="http://www.w3.org/2000/svg"
+  
+        {/* Spotify- och ta bort-ikoner */}
+        {(showSpotifyIcon || showDeleteIcon) && (
+          <div className="flex justify-end mt-2">
+            {showSpotifyIcon && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelectArtist(artist.artist_id);
+                }}
+                className="flex items-center justify-center mx-2"
               >
-                <path
-                  d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.573 17.305c-.23.36-.715.474-1.075.244-2.98-1.82-6.73-2.23-11.14-1.22-.414.1-.8-.17-.9-.58-.1-.41.17-.8.58-.9 4.78-1.16 8.93-.68 12.23 1.38.36.23.47.715.24 1.076zm1.48-3.43c-.28.44-.87.58-1.31.3-3.41-2.09-8.61-2.7-12.64-1.48-.5.15-1.03-.12-1.18-.62-.15-.5.12-1.03.62-1.18 4.63-1.4 10.28-.74 14.16 1.7.44.28.58.87.3 1.31zm.13-3.6c-4.07-2.42-10.79-2.64-14.66-1.46-.6.18-1.23-.14-1.41-.74-.18-.6.14-1.23.74-1.41 4.38-1.32 11.77-1.07 16.43 1.68.56.33.74 1.05.41 1.61-.33.56-1.05.74-1.61.41z"
-                />
-              </svg>
+                {/* Spotify-ikon SVG */}
+                <svg
+                  className={`h-6 w-6 ${
+                    isSelected ? "text-green-500" : "text-white/40"
+                  } hover:text-green-600 transition-colors`}
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.573 17.305c-.23.36-.715.474-1.075.244-2.98-1.82-6.73-2.23-11.14-1.22-.414.1-.8-.17-.9-.58-.1-.41.17-.8.58-.9 4.78-1.16 8.93-.68 12.23 1.38.36.23.47.715.24 1.076zm1.48-3.43c-.28.44-.87.58-1.31.3-3.41-2.09-8.61-2.7-12.64-1.48-.5.15-1.03-.12-1.18-.62-.15-.5.12-1.03.62-1.18 4.63-1.4 10.28-.74 14.16 1.7.44.28.58.87.3 1.31zm.13-3.6c-4.07-2.42-10.79-2.64-14.66-1.46-.6.18-1.23-.14-1.41-.74-.18-.6.14-1.23.74-1.41 4.38-1.32 11.77-1.07 16.43 1.68.56.33.74 1.05.41 1.61-.33.56-1.05.74-1.61.41z"/>
+                </svg>
               </button>
-          )}
-          {showDeleteIcon && onDelete && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(artist.artist_id);
-              }}
-              className="p-1 text-white/40 hover:text-red-600 transition-colors"
-            >
-              <Trash className="h-6 w-6" />
-            </button>
-          )}
-        </div>
-      )}
-    
-  </Card>
-);
+            )}
+            {showDeleteIcon && onDelete && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(artist.artist_id);
+                }}
+                className="p-1 text-white/40 hover:text-red-600 transition-colors"
+              >
+                <Trash className="h-6 w-6" />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+  
 
 });
 
