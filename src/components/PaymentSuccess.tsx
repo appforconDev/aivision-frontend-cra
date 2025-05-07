@@ -12,7 +12,7 @@ const PaymentSuccess = () => {
       const selectedArtists = JSON.parse(localStorage.getItem("selectedArtists") || "[]");
 
       if (!user_id || selectedArtists.length === 0) {
-        toast.error("Invalid payment data. Please try again.");
+      
         navigate("/submissions");
         return;
       }

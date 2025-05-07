@@ -13,7 +13,7 @@ const PRICE_IDS = {
   TICKET_3: process.env.REACT_APP_STRIPE_PRICE_ID_3 || 'price_id_3',
   TICKET_10: process.env.REACT_APP_STRIPE_PRICE_ID_10 || 'price_id_10'
 };
-console.log('Price IDs:', PRICE_IDS); // Log price IDs
+
 
 const VIP = () => {
   const { toast } = useToast();
