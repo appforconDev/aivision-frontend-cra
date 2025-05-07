@@ -127,7 +127,7 @@ const Leaderboard = () => {
           {leader && (
             <div className="md:col-span-3 flex justify-center mb-6 relative">
               <span className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-sm font-bold px-2 py-1 rounded">
-                #1
+                
               </span>
               <ArtistCard
                 key={leader.artist_id}
