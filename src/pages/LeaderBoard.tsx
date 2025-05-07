@@ -13,7 +13,7 @@ const Leaderboard = () => {
   const [selectedArtists, setSelectedArtists] = useState<string[]>([]);
 
   const navigate = useNavigate();
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  const backendUrl = process.env.REACT_APP_BACKEND_URL!;
 
   const toggleArtistSelection = (artistId: string) => {
     setSelectedArtists((prev) =>
@@ -25,20 +25,24 @@ const Leaderboard = () => {
     );
   };
 
+  const handleArtistUpdate = (updated: Artist) => {
+    setArtists((prev) =>
+      prev.map((a) => (a.artist_id === updated.artist_id ? updated : a))
+    );
+  };
+
   useEffect(() => {
     const user_id = localStorage.getItem("user_id");
-    const initializeData = async () => {
+    const initialize = async () => {
       await fetchTopArtists();
       if (user_id) await fetchFavorites(user_id);
     };
-    initializeData();
+    initialize();
   }, []);
 
   const fetchFavorites = async (user_id: string) => {
     try {
-      const resp = await axios.get(`${backendUrl}/favorites`, {
-        params: { user_id },
-      });
+      const resp = await axios.get(`${backendUrl}/favorites`, { params: { user_id } });
       setFavorites(resp.data.favorites);
     } catch (err) {
       console.error("Error fetching favorites:", err);
@@ -49,11 +53,7 @@ const Leaderboard = () => {
     setLoading(true);
     try {
       const resp = await axios.get(`${backendUrl}/artists`, {
-        params: {
-          page: 1,
-          per_page: 10,
-          sort: "desc",
-        },
+        params: { page: 1, per_page: 10, sort: "desc" },
       });
       if (Array.isArray(resp.data.artists)) {
         setArtists(resp.data.artists);
@@ -71,14 +71,9 @@ const Leaderboard = () => {
 
   const fetchAverageRating = async (artistId: string) => {
     try {
-      const resp = await axios.get(
-        `${backendUrl}/artist/${artistId}/average-rating`
-      );
+      const resp = await axios.get(`${backendUrl}/artist/${artistId}/average-rating`);
       if (resp.data.success) {
-        setAverageRatings((prev) => ({
-          ...prev,
-          [artistId]: resp.data,
-        }));
+        setAverageRatings((prev) => ({ ...prev, [artistId]: resp.data }));
       }
     } catch (err) {
       console.error("Error fetching average rating:", err);
@@ -94,15 +89,10 @@ const Leaderboard = () => {
     const isFav = favorites.includes(artistId);
     try {
       if (isFav) {
-        await axios.delete(`${backendUrl}/favorites`, {
-          data: { user_id, artist_id: artistId },
-        });
+        await axios.delete(`${backendUrl}/favorites`, { data: { user_id, artist_id: artistId } });
         setFavorites((favs) => favs.filter((id) => id !== artistId));
       } else {
-        await axios.post(`${backendUrl}/favorites`, {
-          user_id,
-          artist_id: artistId,
-        });
+        await axios.post(`${backendUrl}/favorites`, { user_id, artist_id: artistId });
         setFavorites((favs) => [...favs, artistId]);
       }
     } catch (err) {
@@ -118,29 +108,24 @@ const Leaderboard = () => {
     );
   }
 
-  // Dela upp listan
   const leader = artists[0];
   const others = artists.slice(1);
 
   return (
     <div className="min-h-screen bg-[#0A0A0F] py-24 px-4">
       <div className="max-w-[94%] mx-auto">
-        {/* Titel & intro */}
         <div className="flex flex-col items-center text-center mb-8">
           <h1 className="text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-secondary">
             LeaderBoard
           </h1>
           <p className="text-xl mb-8 max-w-2xl text-white/80">
-            Welcome to the exclusive Leaderboard showcasing the top 10 AI
-            artists from around the globe, each excelling in their unique musical expressions.
+            Welcome to the exclusive Leaderboard showcasing the top 10 AI artists from around the globe.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Leadern */}
           {leader && (
             <div className="md:col-span-3 flex justify-center mb-6 relative">
-              {/* Placering-badge */}
               <span className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-sm font-bold px-2 py-1 rounded">
                 #1
               </span>
@@ -160,7 +145,6 @@ const Leaderboard = () => {
             </div>
           )}
 
-          {/* Övriga */}
           {others.map((artist, idx) => (
             <div key={artist.artist_id} className="relative">
               <span className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-sm font-bold px-2 py-1 rounded">
