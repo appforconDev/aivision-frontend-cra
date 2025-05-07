@@ -141,16 +141,7 @@ const VIP = () => {
             With a VIP ticket, you gain access to premium features that allow you to create and customize your own AI-generated artist.
           </p>
           <p className="text-xl mb-8 max-w-2xl text-white/80">
-            You can showcase your creation across your social media channels and other platforms. Moreover, VIP members have the unique opportunity to upload their songs directly to Spotify <svg
-                className="h-6 w-6 inline-flex align-middle mr-1"
-                viewBox="0 0 24 24"
-                fill="#2de0f0"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.573 17.305c-.23.36-.715.474-1.075.244-2.98-1.82-6.73-2.23-11.14-1.22-.414.1-.8-.17-.9-.58-.1-.41.17-.8.58-.9 4.78-1.16 8.93-.68 12.23 1.38.36.23.47.715.24 1.076zm1.48-3.43c-.28.44-.87.58-1.31.3-3.41-2.09-8.61-2.7-12.64-1.48-.5.15-1.03-.12-1.18-.62-.15-.5.12-1.03.62-1.18 4.63-1.4 10.28-.74 14.16 1.7.44.28.58.87.3 1.31zm.13-3.6c-4.07-2.42-10.79-2.64-14.66-1.46-.6.18-1.23-.14-1.41-.74-.18-.6.14-1.23.74-1.41 4.38-1.32 11.77-1.07 16.43 1.68.56.33.74 1.05.41 1.61-.33.56-1.05.74-1.61.41z"
-                />
-              </svg> enabling you to earn royalties.
+            You can showcase your creation across your social media channels and other platforms. 
           </p>
           <p className="text-xl mb-8 max-w-2xl text-white/80">
             Whether you're looking to enhance your online presence or turn your creative output into a revenue stream, our VIP experience empowers you to take it to the next level.
