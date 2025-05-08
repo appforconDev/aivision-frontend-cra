@@ -24,7 +24,7 @@ const Index = () => {
     setSelectedArtists((prev) =>
       prev.includes(artistId)
         ? prev.filter((id) => id !== artistId)
-        : prev.length < 2
+        : prev.length < 5
         ? [...prev, artistId]
         : prev
     );
@@ -244,7 +244,7 @@ const Index = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {spotlightArtists.map((artist) => (
+                {spotlightArtists.slice(0, 3).map((artist) => (
                   <ArtistCard
                                 key={artist.artist_id}
                                 artist={artist}
