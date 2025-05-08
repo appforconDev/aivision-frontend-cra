@@ -751,7 +751,7 @@ const handleSurpriseMe = async () => {
                       You need at least 1 VIP ticket to create an artist.{" "}
                       <button
                         onClick={() => navigate("/vip")}
-                        className="text-blue-500 hover:underline"
+                        className="mt-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 neon-border"
                       >
                         Purchase VIP Tickets
                       </button>
