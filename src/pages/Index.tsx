@@ -24,7 +24,7 @@ const Index = () => {
     setSelectedArtists((prev) =>
       prev.includes(artistId)
         ? prev.filter((id) => id !== artistId)
-        : prev.length < 5
+        : prev.length < 2
         ? [...prev, artistId]
         : prev
     );
