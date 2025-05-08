@@ -224,20 +224,20 @@ const Index = () => {
             ))}
           </div>
           <Link to="/create">
-                <Button size="lg" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 neon-border">
+                <Button size="lg" className="mt-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 neon-border">
                   Get Started
                 </Button>
               </Link>
           <div>
                 <h2 className="text-3xl md:text-3xl font-bold text-secondary my-6">Total Prize Pool: ${(aiArtistsCount * 0.30).toFixed(2)} </h2>
-                <p className="mt-8 text-sm text-white/60">
+                <p className="mt-6 text-sm text-white/60">
                 The prize pool is weighted toward the top three finishers—20 % / 15 % / 10 %—while the remaining 55 % is split evenly among places 4–10 (about 8 % each).
           </p>
               </div>
               
 
               
-              <p className="mt-8 text-sm text-white/60">
+              <p className="mt-2 text-sm text-white/60">
             <Link to="/terms" className="text-white hover:text-primary transition-colors">Terms</Link> and conditions apply. Please refer to our <Link to="/contest" className="text-white hover:text-primary transition-colors">official contest</Link> rules for more
             details.
           </p>
