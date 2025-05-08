@@ -223,7 +223,11 @@ const Index = () => {
               </Card>
             ))}
           </div>
-       
+          <Link to="/create">
+                <Button size="lg" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 neon-border">
+                  Get Started
+                </Button>
+              </Link>
           <div>
                 <h2 className="text-3xl md:text-3xl font-bold text-secondary my-6">Total Prize Pool: ${(aiArtistsCount * 0.30).toFixed(2)} </h2>
                 <p className="mt-8 text-sm text-white/60">
@@ -232,11 +236,7 @@ const Index = () => {
               </div>
               
 
-              <Link to="/create">
-                <Button size="lg" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 neon-border">
-                  Get Started
-                </Button>
-              </Link>
+              
               <p className="mt-8 text-sm text-white/60">
             <Link to="/terms" className="text-white hover:text-primary transition-colors">Terms</Link> and conditions apply. Please refer to our <Link to="/contest" className="text-white hover:text-primary transition-colors">official contest</Link> rules for more
             details.
