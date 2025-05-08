@@ -225,9 +225,7 @@ const Index = () => {
           </div>
        
           <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-white neon-text">Total Prize Pool: </h2><span className="text-white">
-                ${(aiArtistsCount * 0.30).toFixed(2)} 
-  </span>
+                <h2 className="text-2xl md:text-3xl font-bold text-secondary neon-text">Total Prize Pool: ${(aiArtistsCount * 0.30).toFixed(2)} </h2>
               </div>
               
 
