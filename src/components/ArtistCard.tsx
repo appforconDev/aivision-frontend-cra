@@ -373,16 +373,7 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
       <div className="flex items-center justify-center space-x-2 text-white/60 mb-4">
         <Loader2 className="h-5 w-5 animate-spin" />
         <span>Generating content...</span>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            retryGeneration(artist.artist_id);
-          }}
-          className="ml-2 px-2 py-1 bg-primary/20 rounded hover:bg-primary/30 transition-colors"
-          disabled={generating}
-        >
-          {generating ? "Working..." : "Retry"}
-        </button>
+        
       </div>
     )}
 
