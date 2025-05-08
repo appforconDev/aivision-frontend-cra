@@ -225,7 +225,10 @@ const Index = () => {
           </div>
        
           <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-secondary my-6">Total Prize Pool: ${(aiArtistsCount * 0.30).toFixed(2)} </h2>
+                <h2 className="text-3xl md:text-3xl font-bold text-secondary my-6">Total Prize Pool: ${(aiArtistsCount * 0.30).toFixed(2)} </h2>
+                <p className="mt-8 text-sm text-white/60">
+                The prize pool is weighted toward the top three finishers—20 % / 15 % / 10 %—while the remaining 55 % is split evenly among places 4–10 (about 8 % each).
+          </p>
               </div>
               
 
