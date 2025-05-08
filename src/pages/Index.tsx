@@ -17,7 +17,7 @@ const Index = () => {
   const [averageRatings, setAverageRatings] = useState<Record<string, AverageRating>>({});
   const [favorites, setFavorites] = useState<string[]>([]);
   const backendUrl = process.env.REACT_APP_BACKEND_URL
-
+  const [aiArtistsCount, setAiArtistsCount] = useState(0);
 
   const [selectedArtists, setSelectedArtists] = useState<string[]>([]);
   const toggleArtistSelection = (artistId: string) => {
@@ -156,6 +156,19 @@ const Index = () => {
     }
   }, []);
 
+  useEffect(() => {
+    fetchAiArtistsCount();
+  }, []);
+
+  const fetchAiArtistsCount = async () => {
+    console.log("Backend URL HEADER:", process.env.REACT_APP_BACKEND_URL);
+    try {
+      const response = await axios.get(`${backendUrl}/ai-artists/count`);
+      setAiArtistsCount(response.data.count);
+    } catch (error) {
+      console.error('Error fetching AI Artists count:', error);
+    }
+  };
 
 
 
@@ -210,17 +223,23 @@ const Index = () => {
               </Card>
             ))}
           </div>
-          <p className="mt-8 text-sm text-white/60">
-            <Link to="/terms" className="text-white hover:text-primary transition-colors">Terms</Link> and conditions apply. Please refer to our <Link to="/contest" className="text-white hover:text-primary transition-colors">official contest</Link> rules for more
-            details.
-          </p>
-
+       
+          <div>
+                <h2 className="text-2xl md:text-3xl font-bold text-white neon-text">Total Prize Pool: </h2><span className="text-white">
+                ${(aiArtistsCount * 0.30).toFixed(2)} 
+  </span>
+              </div>
+              
 
               <Link to="/create">
                 <Button size="lg" className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 neon-border">
                   Get Started
                 </Button>
               </Link>
+              <p className="mt-8 text-sm text-white/60">
+            <Link to="/terms" className="text-white hover:text-primary transition-colors">Terms</Link> and conditions apply. Please refer to our <Link to="/contest" className="text-white hover:text-primary transition-colors">official contest</Link> rules for more
+            details.
+          </p>
             </motion.div>
           </div>
 
@@ -228,52 +247,7 @@ const Index = () => {
         </section>
       </section>
 
-      <section className="py-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16 animate-on-scroll">
-            <h2 className="text-4xl font-bold mb-4 text-white neon-text">How It Works</h2>
-            <p className="text-white/60 max-w-2xl mx-auto">
-              Join the revolution in AI-powered music and compete with creators across Europe
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: <Paintbrush className="h-8 w-8 mb-4 text-secondary" />,
-                title: "Create Your AI Artist",
-                description:
-                  "Design unique personas with compelling backstories and original music",
-              },
-              {
-                icon: <Trophy className="h-8 w-8 mb-4 text-primary" />,
-                title: "Compete Nationally",
-                description:
-                  "Enter your country's contest and showcase your creation to a wider audience",
-              },
-              {
-                icon: <Vote className="h-8 w-8 mb-4 text-secondary" />,
-                title: "Vote & Share",
-                description:
-                  "Support your favorite entries and share them across social media",
-              },
-            ].map((feature, index) => (
-              <Card
-                key={index}
-                className="p-6 text-center animate-on-scroll glass hover:shadow-lg transition-all duration-300 border-primary/20 hover:border-primary/40"
-              >
-                <div className="flex justify-center">{feature.icon}</div>
-                <h3 className="text-xl font-semibold mb-2 text-white">{feature.title}</h3>
-                <p className="text-white/60">{feature.description}</p>
-              </Card>
-            ))}
-          </div>
-          <p className="mt-8 text-sm text-white/60">
-            <Link to="/terms" className="text-white hover:text-primary transition-colors">Terms</Link> and conditions apply. Please refer to our <Link to="/contest" className="text-white hover:text-primary transition-colors">official contest</Link> rules for more
-            details.
-          </p>
-        </div>
-      </section>
+      
 
 
       <section className="py-24 bg-[#0A0A0F]">
