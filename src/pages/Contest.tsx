@@ -1,9 +1,28 @@
-import React from 'react';
+import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Paintbrush, Music, Trophy, Upload, Sparkles, Share2 } from 'lucide-react'; // Importera ikoner
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const HowItWorks = () => {
+   const [aiArtistsCount, setAiArtistsCount] = useState(0);
+   const backendUrl = process.env.REACT_APP_BACKEND_URL
+
+   useEffect(() => {
+    fetchAiArtistsCount();
+  }, []);
+
+  const fetchAiArtistsCount = async () => {
+    console.log("Backend URL HEADER:", process.env.REACT_APP_BACKEND_URL);
+    try {
+      const response = await axios.get(`${backendUrl}/ai-artists/count`);
+      setAiArtistsCount(response.data.count);
+    } catch (error) {
+      console.error('Error fetching AI Artists count:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0A0A0F] py-24 px-4">
       <section className="container mx-auto">
@@ -57,7 +76,7 @@ const HowItWorks = () => {
           <Card className="p-6 glass border-primary/20 hover:border-primary/40 transition-all duration-300">
             <div className="flex flex-col items-center text-center space-y-4">
               <Sparkles className="h-8 w-8 text-primary" />
-              <h2 className="text-xl font-bold text-white">. Continuous Innovation</h2>
+              <h2 className="text-xl font-bold text-white"> Continuous Innovation</h2>
               <p className="text-white/60">
                 We are constantly updating our platform with the latest AI tools and features, ensuring you always have the best resources to bring your artistic vision to life.
               </p>
@@ -92,6 +111,19 @@ const HowItWorks = () => {
           </Card>
         </div>
       </section>
+      <div>
+                      <h2 className="text-3xl md:text-3xl font-bold text-secondary my-6">Total Prize Pool: ${(aiArtistsCount * 0.30).toFixed(2)} </h2>
+                      <p className="mt-6 text-sm text-white/60">
+                      The prize pool is weighted toward the top three finishers—20 % / 15 % / 10 %—while the remaining 55 % is split evenly among places 4–10 (about 8 % each).
+                </p>
+                    </div>
+                    
+      
+                    
+                    <p className="mt-2 text-sm text-white/60">
+                  <Link to="/terms" className="text-white hover:text-primary transition-colors">Terms</Link> and conditions apply. Please refer to our <Link to="/contest" className="text-white hover:text-primary transition-colors">official contest</Link> rules for more
+                  details.
+                </p>
     </div>
   );
 };
