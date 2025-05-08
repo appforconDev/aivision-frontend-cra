@@ -205,9 +205,9 @@ const Index = () => {
           Europe’s Premier AI Music Competition
         </Badge>
 
-        <h1 className="text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-white to-secondary">
-          AIVision<span className="break-mobile"></span>Contest
-        </h1>
+        <h1 className="font-display text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-white to-secondary">
+  AIVision<span className="break-mobile"></span> Contest
+</h1>
 
         <p className="text-xl max-w-2xl mx-auto text-white/80">
           Create Your AI Artist – Compete, Vote, and Win in Europe’s Most Innovative Digital
