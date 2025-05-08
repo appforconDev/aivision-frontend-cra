@@ -5,14 +5,11 @@ const Terms = () => {
   return (
     <div className="min-h-screen bg-[#0A0A0F] py-24 px-4">
       <section className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2 mt-0 neon-text">Terms and Conditions</h1>
-        <p className="text-white/60 mb-6">
-          Please read these Terms and Conditions carefully before using AIVisionContest.
-        </p>
+        <
 
         <Card className="p-6 border border-primary/20 rounded-xl">
           <CardHeader>
-            <CardTitle className="text-white">Terms and Conditions for AIVisionContest</CardTitle>
+            <CardTitle className="text-white neon-text">Terms and Conditions for AIVisionContest</CardTitle>
             <CardDescription className="text-white/60">
               <p>Welcome to AIVisionContest, a service provided by Winbergh Media ("we", "us", "our"). By using our web app and services, you agree to these Terms and Conditions. Please read the following terms carefully before using our service.</p>
             </CardDescription>
