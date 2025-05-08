@@ -187,36 +187,57 @@ const Index = () => {
             </motion.div>
           </div>
 
-          <div className="container mx-auto px-4 z-10">
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <Card className="p-6 glass border-white/20 rounded-l">
-                <div className="flex flex-col items-center text-center space-y-4">
-                  <Plus className="h-12 w-12 text-secondary" />
-                  <h2 className="text-xl font-bold text-white">Create AI Artist</h2>
-                  <p className="text-white/60">
-                    Start the creative process and bring your AIrtist to life
-                  </p>
-                  <Button onClick={() => navigate("/create")} className="neon-border rounded">
-                    Get Started
-                  </Button>
-                </div>
-              </Card>
-              <Card className="p-6 glass border-white/20">
-                <div className="flex flex-col items-center text-center space-y-4">
-                  <Trophy className="h-12 w-12 text-secondary" />
-                  <h2 className="text-xl font-bold text-white">Current LeaderBoard</h2>
-                  <p className="text-white/60">
-                    View ongoing competition details and standings
-                  </p>
-                  <Button onClick={() => navigate("/leaderboard")} className="neon-border rounded">
-                    View LeaderBoard
-                  </Button>
-                </div>
-              </Card>
-            </section>
-          </div>
+          
         </section>
       </section>
+
+      <section className="py-24">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16 animate-on-scroll">
+            <h2 className="text-4xl font-bold mb-4 text-white neon-text">How It Works</h2>
+            <p className="text-white/60 max-w-2xl mx-auto">
+              Join the revolution in AI-powered music and compete with creators across Europe
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <Paintbrush className="h-8 w-8 mb-4 text-secondary" />,
+                title: "Create Your AI Artist",
+                description:
+                  "Design unique personas with compelling backstories and original music",
+              },
+              {
+                icon: <Trophy className="h-8 w-8 mb-4 text-primary" />,
+                title: "Compete Nationally",
+                description:
+                  "Enter your country's contest and showcase your creation to a wider audience",
+              },
+              {
+                icon: <Vote className="h-8 w-8 mb-4 text-secondary" />,
+                title: "Vote & Share",
+                description:
+                  "Support your favorite entries and share them across social media",
+              },
+            ].map((feature, index) => (
+              <Card
+                key={index}
+                className="p-6 text-center animate-on-scroll glass hover:shadow-lg transition-all duration-300 border-primary/20 hover:border-primary/40"
+              >
+                <div className="flex justify-center">{feature.icon}</div>
+                <h3 className="text-xl font-semibold mb-2 text-white">{feature.title}</h3>
+                <p className="text-white/60">{feature.description}</p>
+              </Card>
+            ))}
+          </div>
+          <p className="mt-8 text-sm text-white/60">
+            <Link to="/terms" className="text-white hover:text-primary transition-colors">Terms</Link> and conditions apply. Please refer to our <Link to="/contest" className="text-white hover:text-primary transition-colors">official contest</Link> rules for more
+            details.
+          </p>
+        </div>
+      </section>
+
 
       <section className="py-24 bg-[#0A0A0F]">
         <div className="container mx-auto px-4 mb-4">
@@ -288,6 +309,34 @@ const Index = () => {
         </div>
       </section>
 
+      <div className="container mx-auto px-4 z-10">
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <Card className="p-6 glass border-white/20 rounded-l">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <Plus className="h-12 w-12 text-secondary" />
+                  <h2 className="text-xl font-bold text-white">Create AI Artist</h2>
+                  <p className="text-white/60">
+                    Start the creative process and bring your AIrtist to life
+                  </p>
+                  <Button onClick={() => navigate("/create")} className="neon-border rounded">
+                    Get Started
+                  </Button>
+                </div>
+              </Card>
+              <Card className="p-6 glass border-white/20">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <Trophy className="h-12 w-12 text-secondary" />
+                  <h2 className="text-xl font-bold text-white">Current LeaderBoard</h2>
+                  <p className="text-white/60">
+                    View ongoing competition details and standings
+                  </p>
+                  <Button onClick={() => navigate("/leaderboard")} className="neon-border rounded">
+                    View LeaderBoard
+                  </Button>
+                </div>
+              </Card>
+            </section>
+          </div>
       <section className="py-24">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 animate-on-scroll">
