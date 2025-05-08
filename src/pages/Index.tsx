@@ -176,7 +176,7 @@ const Index = () => {
     <div className="min-h-screen bg-[#0A0A0F]">
       <section className="relative flex items-center justify-center overflow-hidden pt-16">
         <section className="relative flex flex-col items-center justify-center overflow-hidden pt-16">
-          <div className="container mx-auto px-4 z-10 mb-24 text-center">
+          <div className="container mx-auto px-4 z-10 mb-4 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -224,7 +224,7 @@ const Index = () => {
             ))}
           </div>
           <Link to="/create">
-                <Button size="lg" className="mt-10 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 neon-border">
+                <Button size="lg" className="my-10 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 neon-border">
                   Get Started
                 </Button>
               </Link>
