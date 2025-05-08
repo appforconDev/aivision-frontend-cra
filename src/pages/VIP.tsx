@@ -178,7 +178,7 @@ const VIP = () => {
                 <div className="mb-2">
                   {discountApplied ? (
                     <>
-                      <span className="line-through text-2xl">$0.99</span>
+                      <span className="line-through text-2xl">$1.49</span>
                       <span className="ml-2 text-primary text-3xl neon-text">${discountedPrices.TICKET_1.toFixed(2)}</span>
                     </>
                   ) : (
@@ -238,7 +238,7 @@ const VIP = () => {
         </div>
         <p className="mt-8 text-sm text-white/60">
            Each VIP ticket allows you to create one AI artist.
-          <Link to="/terms" className="hover:text-primary transition-colors"> Terms</Link> and conditions apply.
+          <Link to="/terms" className="text-white hover:text-secondary transition-colors"> Terms</Link> and conditions apply.
         </p>
       </main>
     </div>
