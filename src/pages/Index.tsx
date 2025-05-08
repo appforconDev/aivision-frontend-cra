@@ -8,6 +8,8 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import ArtistCard from "../components/ArtistCard"; // Importera ArtistCard
 import { Artist, AverageRating } from "../components/types"; // Importera typer
+import fbCover from '../assets/fb_cover.webp';
+
 
 const Index = () => {
   const navigate = useNavigate();
@@ -174,79 +176,114 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-[#0A0A0F]">
-      <section className="relative flex items-center justify-center overflow-hidden pt-16">
-        <section className="relative flex flex-col items-center justify-center overflow-hidden pt-16">
-          <div className="container mx-auto px-4 z-10 mb-4 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1.4 }}
-            >
-              <Badge variant="outline" className="mb-4 py-2 px-4 border-primary text-primary neo-text">
-                Europe's Premier AI Music Competition
-              </Badge>
-              <h1 className="text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary via-white to-secondary">
-              AIVision<span className="break-mobile"></span>Contest
-              </h1>
-              <p className="text-xl mb-8 max-w-2xl mx-auto text-white/80">
-                Create Your AI Artist – Compete, Vote, and Win in Europe's Most Innovative Digital
-                Music Competition
-              </p>
-              <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: <Paintbrush className="h-8 w-8 mb-4 text-secondary" />,
-                title: "Create Your AI Artist",
-                description:
-                  "Design unique personas with compelling backstories and original music",
-              },
-              {
-                icon: <Trophy className="h-8 w-8 mb-4 text-primary" />,
-                title: "Compete Nationally",
-                description:
-                  "Enter your country's contest and showcase your creation to a wider audience",
-              },
-              {
-                icon: <Vote className="h-8 w-8 mb-4 text-secondary" />,
-                title: "Vote & Share",
-                description:
-                  "Support your favorite entries and share them across social media",
-              },
-            ].map((feature, index) => (
-              <Card
-                key={index}
-                className="p-6 text-center animate-on-scroll glass hover:shadow-lg transition-all duration-300 border-primary/20 hover:border-primary/40"
-              >
-                <div className="flex justify-center">{feature.icon}</div>
-                <h3 className="text-xl font-semibold mb-2 text-white">{feature.title}</h3>
-                <p className="text-white/60">{feature.description}</p>
-              </Card>
-            ))}
-          </div>
-          <Link to="/create">
-                <Button size="lg" className="mt-12 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 neon-border">
-                  Get Started
-                </Button>
-              </Link>
-              <div>
-                <h2 className="text-3xl md:text-3xl font-bold text-secondary my-6">Total Prize Pool: ${(aiArtistsCount * 0.30).toFixed(2)} </h2>
-                <p className="mt-6 text-sm text-white/60">
-                The prize pool is weighted toward the top three finishers—20 % / 15 % / 10 %—while the remaining 55 % is split evenly among places 4–10 (about 8 % each).
-          </p>
-              </div>
-              
+     <section className="relative pt-16">
+    {/* Här börjar din bakgrunds­wrapper */}
+    <div
+      className="relative flex flex-col items-center justify-center p-8 bg-cover bg-center"
+      style={{ backgroundImage: `url(${fbCover})` }}
+    >
+   <div
+  className="absolute inset-0"
+  style={{
+    background: `
+      radial-gradient(
+        circle at center,
+        rgba(0,0,0,0.9) 0%,
+        rgba(0,0,0,0.6) 60%,
+        rgba(0,0,0,0) 100%
+      )
+    `,
+  }}
+  aria-hidden="true"
+/>
 
-              
-              <p className="mt-2 text-sm text-white/60">
-            <Link to="/terms" className="text-white hover:text-primary transition-colors">Terms</Link> and conditions apply. Please refer to our <Link to="/contest" className="text-white hover:text-primary transition-colors">official contest</Link> rules for more
-            details.
-          </p>
-            </motion.div>
-          </div>
+      <div className="relative z-10 text-center space-y-6">
+        <Badge
+          variant="outline"
+          className="mb-4 py-2 px-4 border-primary text-primary neo-text"
+        >
+          Europe’s Premier AI Music Competition
+        </Badge>
 
-          
-        </section>
-      </section>
+        <h1 className="text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-white to-secondary">
+          AIVision<span className="break-mobile"></span>Contest
+        </h1>
+
+        <p className="text-xl max-w-2xl mx-auto text-white/80">
+          Create Your AI Artist – Compete, Vote, and Win in Europe’s Most Innovative Digital
+          Music Competition
+        </p>
+      </div>
+  
+    {/* Här slutar bakgrunds­wrappern */}
+
+    {/* Resten av innehållet, utan bakgrund */}
+    <div className="container mx-auto px-4 mt-12">
+      <div className="grid md:grid-cols-3 gap-8 mb-12">
+        {[
+          {
+            icon: <Paintbrush className="h-8 w-8 mb-4 text-secondary" />,
+            title: "Create Your AI Artist",
+            description:
+              "Design unique personas with compelling backstories and original music",
+          },
+          {
+            icon: <Trophy className="h-8 w-8 mb-4 text-primary" />,
+            title: "Compete Nationally",
+            description:
+              "Enter your country’s contest and showcase your creation to a wider audience",
+          },
+          {
+            icon: <Vote className="h-8 w-8 mb-4 text-secondary" />,
+            title: "Vote & Share",
+            description:
+              "Support your favorite entries and share them across social media",
+          },
+        ].map((feature, index) => (
+          <Card
+            key={index}
+            className="p-6 text-center animate-on-scroll glass hover:shadow-lg transition-all duration-300 border-primary/20 hover:border-primary/40"
+          >
+            <div className="flex justify-center">{feature.icon}</div>
+            <h3 className="text-xl font-semibold mb-2 text-white">{feature.title}</h3>
+            <p className="text-white/60">{feature.description}</p>
+          </Card>
+        ))}
+      </div>
+      </div></div><div className="container mx-auto px-4 mt-12">
+      <Link to="/create">
+        <Button
+          size="lg"
+          className="mt-4 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 neon-border"
+        >
+          Get Started
+        </Button>
+      </Link>
+
+      <div className="mt-8">
+        <h2 className="text-3xl font-bold text-secondary mb-4">
+          Total Prize Pool: ${(aiArtistsCount * 0.30).toFixed(2)}
+        </h2>
+        <p className="text-sm text-white/60">
+          The prize pool is weighted toward the top three finishers—20% / 15% / 10%—while the
+          remaining 55% is split evenly among places 4–10 (about 8% each).
+        </p>
+      </div>
+
+      <p className="mt-4 text-sm text-white/60">
+        <Link to="/terms" className="text-white hover:text-primary transition-colors">
+          Terms
+        </Link>{" "}
+        and conditions apply. Please refer to our{" "}
+        <Link to="/contest" className="text-white hover:text-primary transition-colors">
+          official contest
+        </Link>{" "}
+        rules for more details.
+      </p>
+    </div>
+  </section>
+
+
 
       
 
