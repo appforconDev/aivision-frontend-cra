@@ -224,7 +224,7 @@ const Index = () => {
             ))}
           </div>
           <Link to="/create">
-                <Button size="lg" className="my-10 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 neon-border">
+                <Button size="lg" className="mt-12 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 neon-border">
                   Get Started
                 </Button>
               </Link>
