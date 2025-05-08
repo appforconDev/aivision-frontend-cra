@@ -205,7 +205,7 @@ const VIP = () => {
                       <span className="ml-2 text-primary text-3xl neon-text">${discountedPrices.TICKET_3.toFixed(2)}</span>
                     </>
                   ) : (
-                    <span className="text-2xl">$12.99</span>
+                    <span className="text-2xl">$3.99</span>
                   )}
                 </div>
                 Save and create multiple artists.
@@ -224,11 +224,11 @@ const VIP = () => {
                 <div className="mb-2">
                   {discountApplied ? (
                     <>
-                      <span className="line-through text-2xl">$6.99</span>
+                      <span className="line-through text-2xl">$12.99</span>
                       <span className="ml-2 text-primary text-3xl neon-text">${discountedPrices.TICKET_10.toFixed(2)}</span>
                     </>
                   ) : (
-                    <span className="text-2xl">$6.99</span>
+                    <span className="text-2xl">$12.99</span>
                   )}
                 </div>
                 Save and unlock unlimited creativity.

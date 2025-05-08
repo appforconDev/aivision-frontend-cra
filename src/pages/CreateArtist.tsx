@@ -750,11 +750,11 @@ const handleSurpriseMe = async () => {
                     <div className="text-secondary text-sm mt-2">
                       You need at least 1 VIP ticket to create an artist.{" "}
                       <button
-                        onClick={() => navigate("/vip")}
-                        className="mt-8 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 neon-border"
-                      >
-                        Purchase VIP Tickets
-                      </button>
+                      onClick={() => navigate("/vip")}
+                      className="mt-8 inline-block px-4 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 neon-border"
+                    >
+                      Purchase VIP Tickets
+                    </button>
                     </div>
                   )}
                 </div>
