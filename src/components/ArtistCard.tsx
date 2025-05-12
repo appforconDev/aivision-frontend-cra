@@ -343,44 +343,15 @@ const showModal = (title: string, message: string) => {
   };
 
   const handleInstagramShare = (e: React.MouseEvent) => {
-    console.log('Instagram button clicked'); 
     e.stopPropagation();
-    toast({ title: "Test", description: "Button is working" });
     e.preventDefault();
   
-    toast({
+    // Ersätt toast med din modal
+    setModalContent({
       title: "Share to Instagram",
-      description: (
-        <div className="flex flex-col space-y-3 mt-2">
-          <button
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(shareUrl);
-                toast({
-                  title: "Link copied to clipboard!",
-                  className: "text-green-500 [&>button]:text-green-500",
-                });
-              } catch (error) {
-                toast({
-                  title: "Failed to copy link",
-                  variant: "destructive",
-                });
-              }
-            }}
-            className="px-3 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80"
-          >
-            Copy Profile Link
-          </button>
-          <button
-            onClick={handleSaveImage}
-            className="px-3 py-2 bg-[#E1306C] text-white rounded-md hover:bg-[#C13584] flex items-center justify-center"
-          >
-            <FaInstagram className="mr-2" />
-            Save Image for Story
-          </button>
-        </div>
-      ),
+      message: "Choose an option below to share this artist"
     });
+    setIsModalOpen(true);
   };
 
   return (
@@ -574,7 +545,9 @@ const showModal = (title: string, message: string) => {
       border: '1px solid #ffffff20',
       borderRadius: '8px',
       padding: '20px',
-      color: 'white'
+      color: 'white',
+      width: '90%',
+      maxWidth: '400px'
     },
     overlay: {
       backgroundColor: 'rgba(0, 0, 0, 0.75)'
@@ -582,13 +555,47 @@ const showModal = (title: string, message: string) => {
   }}
 >
   <h2 className="text-xl font-bold mb-2">{modalContent.title}</h2>
-  <p>{modalContent.message}</p>
-  <button 
-    onClick={() => setIsModalOpen(false)}
-    className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary/80"
-  >
-    OK
-  </button>
+  <p className="mb-4">{modalContent.message}</p>
+  
+  <div className="flex flex-col space-y-3">
+    <button
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          setModalContent({
+            title: "Success!",
+            message: "Link copied to clipboard!"
+          });
+        } catch (error) {
+          setModalContent({
+            title: "Error",
+            message: "Failed to copy link"
+          });
+        }
+      }}
+      className="px-3 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80"
+    >
+      Copy Profile Link
+    </button>
+    
+    <button
+      onClick={() => {
+        handleSaveImage();
+        setIsModalOpen(false);
+      }}
+      className="px-3 py-2 bg-[#E1306C] text-white rounded-md hover:bg-[#C13584] flex items-center justify-center"
+    >
+      <FaInstagram className="mr-2" />
+      Save Image for Story
+    </button>
+    
+    <button 
+      onClick={() => setIsModalOpen(false)}
+      className="mt-2 px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+    >
+      Cancel
+    </button>
+  </div>
 </ReactModal>
 
 
