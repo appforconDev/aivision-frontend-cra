@@ -536,16 +536,20 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
 
   {/* TikTok */}
   <button
-          onClick={handleTikTokDownload}
-          disabled={videoGenerating}
-          className="p-2 hover:text-[#FE2C55] transition-colors"
-        >
-          {videoGenerating ? (
-            <Loader2 className="h-6 w-6 text-[#FE2C55] animate-spin" />
-          ) : (
-            <FaTiktok className="h-6 w-6 text-white/80 hover:text-[#FE2C55]" />
-          )}
-        </button>
+  onClick={(e) => {
+    e.stopPropagation();
+    console.log("TikTok-knappen klickad");
+    handleTikTokDownload();
+  }}
+  disabled={videoGenerating}
+  className="p-2 hover:text-[#FE2C55] transition-colors"
+>
+  {videoGenerating ? (
+    <Loader2 className="h-6 w-6 text-[#FE2C55] animate-spin" />
+  ) : (
+    <FaTiktok className="h-6 w-6 text-white/80 hover:text-[#FE2C55]" />
+  )}
+</button>
 </div>
 
 
