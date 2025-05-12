@@ -12,7 +12,16 @@ import html2canvas from 'html2canvas';
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { fetchFile } from '@ffmpeg/util'
 
-const ffmpeg = new FFmpeg()
+const ffmpeg = new FFmpeg({ log: true })
+let ffmpegReady = false
+
+const ensureFFmpegLoaded = async () => {
+  if (!ffmpegReady) {
+    // just call load() once—no isLoaded() method in v0.12+
+    await ffmpeg.load({ coreURL: '/ffmpeg-core.js' })  
+    ffmpegReady = true
+  }
+}
 
 interface ArtistCardProps {
   artist: Artist,
@@ -58,40 +67,42 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
 
   const [videoGenerating, setVideoGenerating] = useState(false);
 
-  async function handleTikTokDownload() {
-    if (!ffmpeg.isLoaded()) {
-      // corePath pekar på mappen du kopierat från node_modules/@ffmpeg/core/dist
-      await ffmpeg.load({ corePath: '/ffmpeg_core_dist/ffmpeg-core.js' })
-    }
+  const handleTikTokDownload = async () => {
+   
+    setVideoGenerating(true)
   
-    // skriv in bild + ljud
-    await ffmpeg.writeFile('image.png', await fetchFile(artist.image_url))
-    await ffmpeg.writeFile('audio.mp3', await fetchFile(artist.song_url))
+    // load ffmpeg-core once
+    await ensureFFmpegLoaded()
   
-    // skapa 9:16-video 60s med 7s fade-out
+    // write image + audio
+    ffmpeg.FS('writeFile', 'image.png', await fetchFile(artist.image_url))
+    ffmpeg.FS('writeFile', 'audio.mp3', await fetchFile(artist.song_url))
+  
+    // run the transcoding
     await ffmpeg.exec([
-      '-loop','1',
-      '-i','image.png',
-      '-i','audio.mp3',
-      '-c:v','libx264',
-      '-vf','scale=720:1280,format=yuv420p',
-      '-t','60',
-      '-af','afade=t=out:st=53:d=7',
-      '-c:a','aac','-b:a','128k',
+      '-loop', '1',
+      '-i', 'image.png',
+      '-i', 'audio.mp3',
+      '-c:v', 'libx264',
+      '-vf', 'scale=720:1280,format=yuv420p',
+      '-t', '60',
+      '-af', 'afade=t=out:st=53:d=7',
+      '-c:a', 'aac','-b:a','128k',
       '-shortest',
-      'out.mp4'
+      'out.mp4',
     ])
   
-    // läs ut videon och ladda ner
+    // read and download
     const data = await ffmpeg.readFile('out.mp4')
-    const blob = new Blob([data.buffer], { type: 'video/mp4' })
-    const url  = URL.createObjectURL(blob)
-    const a    = document.createElement('a')
-    a.href     = url
-    a.download = `${artist.name.replace(/\s+/g,'_')}_tiktok.mp4`
-    document.body.appendChild(a)
+    const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${artist.name.replace(/\s+/g, '_')}_tiktok.mp4`
+    document.body.append(a)
     a.click()
     a.remove()
+  
+    setVideoGenerating(false)
   }
   
   const cardClass = useMemo(() => {
@@ -537,9 +548,9 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
   {/* TikTok */}
   <button
   onClick={(e) => {
-    e.stopPropagation();
-    console.log("TikTok-knappen klickad");
-    handleTikTokDownload();
+    e.stopPropagation()
+    console.log("TikTok-knappen klickad")
+    handleTikTokDownload()
   }}
   disabled={videoGenerating}
   className="p-2 hover:text-[#FE2C55] transition-colors"
