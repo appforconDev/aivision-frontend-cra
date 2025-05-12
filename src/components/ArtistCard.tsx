@@ -9,23 +9,23 @@ import { Artist, AverageRating } from './types';
 import StarRating from './StarRating';
 import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedin, FaTiktok } from 'react-icons/fa';
 import html2canvas from 'html2canvas';
-import { FFmpeg } from '@ffmpeg/ffmpeg'
-import { fetchFile } from '@ffmpeg/util'
+import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
 import ReactModal from 'react-modal';
 
-const ffmpeg = new FFmpeg({ log: true })
-let ffmpegReady = false
+const ffmpeg = createFFmpeg({
+  log: true,
+  corePath: '/ffmpeg_core_dist/umd/ffmpeg-core.js'
+});
+
+let ffmpegReady = false;
 
 const ensureFFmpegLoaded = async () => {
   if (!ffmpegReady) {
-    // just call load() once—no isLoaded() method in v0.12+
-    await ffmpeg.load({ corePath: '/ffmpeg_core_dist/umd/ffmpeg-core.js' })
-
-
- 
-    ffmpegReady = true
+    await ffmpeg.load();
+    ffmpegReady = true;
   }
-}
+};
+
 
 interface ArtistCardProps {
   artist: Artist,
