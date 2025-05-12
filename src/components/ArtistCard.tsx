@@ -78,61 +78,62 @@ const showModal = (title: string, message: string) => {
   setModalContent({title, message});
   setIsModalOpen(true);
 };
-
 const handleTikTokDownload = async () => {
   if (!cardRef.current || !artist.song_url) return;
   setVideoGenerating(true);
-
   try {
-    // 1. Generera bild från kortet
-    const canvas = await html2canvas(cardRef.current, {
-      backgroundColor: '#0A0A0F',
-      scale: 2,
-    });
-
-    const dataUrl = canvas.toDataURL('image/png');
-    const res = await fetch(dataUrl);
-    const imageBlob = await res.blob();
-    const imageArrayBuffer = await imageBlob.arrayBuffer();
-
-    // 2. Ladda ffmpeg-core
-    await ensureFFmpegLoaded();
-
-    // 3. Ladda in bild och ljud i ffmpeg FS
-    ffmpeg.FS('writeFile', 'image.png', new Uint8Array(imageArrayBuffer));
-    ffmpeg.FS('writeFile', 'audio.mp3', await fetchFile(artist.song_url));
-
-    // 4. Skapa video
-    await ffmpeg.exec([
-      '-loop', '1',
-      '-i', 'image.png',
-      '-i', 'audio.mp3',
-      '-c:v', 'libx264',
-      '-vf', 'scale=720:1280,format=yuv420p',
-      '-t', '60',
-      '-af', 'afade=t=out:st=53:d=7',
-      '-c:a', 'aac',
-      '-b:a', '128k',
-      '-shortest',
-      'out.mp4',
-    ]);
-
-    // 5. Ladda ner videon
-    const data = await ffmpeg.readFile('out.mp4');
-    const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${artist.name.replace(/\s+/g, '_')}_AIvideo.mp4`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+  // Ensure FFmpeg is loaded
+  const ffmpeg = createFFmpeg({
+  log: true,
+  corePath: '/ffmpeg_core_dist/umd/ffmpeg-core.js'
+  });
+  await ffmpeg.load();
+  // 1. Generate image from the card
+  const canvas = await html2canvas(cardRef.current, {
+    backgroundColor: '#0A0A0F',
+    scale: 2,
+  });
+  
+  const dataUrl = canvas.toDataURL('image/png');
+  const res = await fetch(dataUrl);
+  const imageBlob = await res.blob();
+  const imageArrayBuffer = await imageBlob.arrayBuffer();
+  
+  // 2. Write files to FFmpeg filesystem
+  ffmpeg.FS('writeFile', 'image.png', new Uint8Array(imageArrayBuffer));
+  ffmpeg.FS('writeFile', 'audio.mp3', await fetchFile(artist.song_url));
+  
+  // 3. Create video
+  await ffmpeg.run(
+    '-loop', '1',
+    '-i', 'image.png',
+    '-i', 'audio.mp3',
+    '-c:v', 'libx264',
+    '-vf', 'scale=720:1280,format=yuv420p',
+    '-t', '60',
+    '-af', 'afade=t=out:st=53:d=7',
+    '-c:a', 'aac',
+    '-b:a', '128k',
+    '-shortest',
+    'out.mp4'
+  );
+  
+  // 4. Download the video
+  const data = ffmpeg.FS('readFile', 'out.mp4');
+  const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${artist.name.replace(/\s+/g, '_')}_AIvideo.mp4`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
   } catch (error) {
-    showModal("Error", "Failed to generate TikTok video.");
-    console.error("TikTok video generation error:", error);
+  showModal("Error", "Failed to generate TikTok video.");
+  console.error("TikTok video generation error:", error);
   } finally {
-    setVideoGenerating(false);
+  setVideoGenerating(false);
   }
-};
+  };
 
   
   const cardClass = useMemo(() => {
