@@ -19,7 +19,8 @@ let ffmpegReady = false
 const ensureFFmpegLoaded = async () => {
   if (!ffmpegReady) {
     // just call load() once—no isLoaded() method in v0.12+
-    await ffmpeg.load({ corePath: '/ffmpeg_core_dist/esm/ffmpeg-core.js' })
+    await ffmpeg.load({ corePath: '/ffmpeg_core_dist/umd/ffmpeg-core.js' })
+
 
  
     ffmpegReady = true
