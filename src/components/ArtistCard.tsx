@@ -11,6 +11,7 @@ import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedin, FaTiktok } from 'react
 import html2canvas from 'html2canvas';
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { fetchFile } from '@ffmpeg/util'
+import ReactModal from 'react-modal';
 
 const ffmpeg = new FFmpeg({ log: true })
 let ffmpegReady = false
@@ -68,6 +69,14 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
 
   const [videoGenerating, setVideoGenerating] = useState(false);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+const [modalContent, setModalContent] = useState<{title: string; message: string}>({title: '', message: ''});
+
+const showModal = (title: string, message: string) => {
+  setModalContent({title, message});
+  setIsModalOpen(true);
+};
 
   const handleTikTokDownload = async () => {
    
@@ -314,13 +323,9 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
   const handleSaveImage = async () => {
     if (!cardRef.current) return;
     
+    showModal("Generating image...", "Please wait while we create your shareable image");
+  
     try {
-      // Visa laddningsmeddelande
-      toast({
-        title: "Generating image...",
-        description: "Please wait while we create your shareable image",
-      });
-
       const canvas = await html2canvas(cardRef.current, {
         backgroundColor: '#0A0A0F',
         scale: 2
@@ -331,19 +336,9 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
       link.href = canvas.toDataURL('image/png');
       link.click();
       
-      // Visa succémeddelande (använder default variant med grön text)
-      toast({
-        title: "Image saved!",
-        description: "You can now share it on Instagram or TikTok",
-        className: "text-green-500 [&>button]:text-green-500", // Anpassad styling
-      });
+      showModal("Image saved!", "You can now share it on Instagram or TikTok");
     } catch (error) {
-      console.error('Error saving image:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save image",
-        variant: "destructive",
-      });
+      showModal("Error", "Failed to save image");
     }
   };
 
@@ -564,7 +559,37 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
   )}
 </button>
 </div>
-
+<ReactModal
+  isOpen={isModalOpen}
+  onRequestClose={() => setIsModalOpen(false)}
+  style={{
+    content: {
+      top: '50%',
+      left: '50%',
+      right: 'auto',
+      bottom: 'auto',
+      marginRight: '-50%',
+      transform: 'translate(-50%, -50%)',
+      backgroundColor: '#0A0A0F',
+      border: '1px solid #ffffff20',
+      borderRadius: '8px',
+      padding: '20px',
+      color: 'white'
+    },
+    overlay: {
+      backgroundColor: 'rgba(0, 0, 0, 0.75)'
+    }
+  }}
+>
+  <h2 className="text-xl font-bold mb-2">{modalContent.title}</h2>
+  <p>{modalContent.message}</p>
+  <button 
+    onClick={() => setIsModalOpen(false)}
+    className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary/80"
+  >
+    OK
+  </button>
+</ReactModal>
 
 
         <div>
@@ -651,7 +676,9 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
       )}
     </div>
   </Card>
+  
 );
+
 
 });
 
