@@ -9,6 +9,10 @@ import { Artist, AverageRating } from './types';
 import StarRating from './StarRating';
 import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedin, FaTiktok } from 'react-icons/fa';
 import html2canvas from 'html2canvas';
+import { FFmpeg } from '@ffmpeg/ffmpeg'
+import { fetchFile } from '@ffmpeg/util'
+
+const ffmpeg = new FFmpeg()
 
 interface ArtistCardProps {
   artist: Artist,
@@ -51,6 +55,44 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
   const shareText = `Kolla in ${artist.name} på min webbplats!`;
   const [username, setUsername] = useState<string>("");
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
+
+  const [videoGenerating, setVideoGenerating] = useState(false);
+
+  async function handleTikTokDownload() {
+    if (!ffmpeg.isLoaded()) {
+      // corePath pekar på mappen du kopierat från node_modules/@ffmpeg/core/dist
+      await ffmpeg.load({ corePath: '/ffmpeg_core_dist/ffmpeg-core.js' })
+    }
+  
+    // skriv in bild + ljud
+    await ffmpeg.writeFile('image.png', await fetchFile(artist.image_url))
+    await ffmpeg.writeFile('audio.mp3', await fetchFile(artist.song_url))
+  
+    // skapa 9:16-video 60s med 7s fade-out
+    await ffmpeg.exec([
+      '-loop','1',
+      '-i','image.png',
+      '-i','audio.mp3',
+      '-c:v','libx264',
+      '-vf','scale=720:1280,format=yuv420p',
+      '-t','60',
+      '-af','afade=t=out:st=53:d=7',
+      '-c:a','aac','-b:a','128k',
+      '-shortest',
+      'out.mp4'
+    ])
+  
+    // läs ut videon och ladda ner
+    const data = await ffmpeg.readFile('out.mp4')
+    const blob = new Blob([data.buffer], { type: 'video/mp4' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `${artist.name.replace(/\s+/g,'_')}_tiktok.mp4`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+  }
   
   const cardClass = useMemo(() => {
     return `p-4 glass border-white/20 max-w-xs sm:max-w-md lg:max-w-2xl ${useNeonBorder ? 'neon-border' : ''} rounded-lg`;
@@ -494,28 +536,16 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
 
   {/* TikTok */}
   <button
-    onClick={(e) => {
-      e.stopPropagation();
-      toast({
-        title: "Share to TikTok",
-        description: "Copy this link to share in your TikTok",
-        action: (
-          <button 
-            onClick={() => {
-              navigator.clipboard.writeText(shareUrl);
-              toast({ title: "Link copied!" });
-            }}
-            className="px-2 py-1 bg-secondary text-secondary-foreground rounded"
-          >
-            Copy Link
-          </button>
-        ),
-      });
-    }}
-    className="p-2 hover:text-[#FE2C55] transition-colors"
-  >
-    <FaTiktok className="h-6 w-6 text-white/80 hover:text-[#FE2C55]" />
-  </button>
+          onClick={handleTikTokDownload}
+          disabled={videoGenerating}
+          className="p-2 hover:text-[#FE2C55] transition-colors"
+        >
+          {videoGenerating ? (
+            <Loader2 className="h-6 w-6 text-[#FE2C55] animate-spin" />
+          ) : (
+            <FaTiktok className="h-6 w-6 text-white/80 hover:text-[#FE2C55]" />
+          )}
+        </button>
 </div>
 
 
