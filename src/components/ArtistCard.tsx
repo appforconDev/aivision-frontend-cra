@@ -78,18 +78,30 @@ const showModal = (title: string, message: string) => {
   setIsModalOpen(true);
 };
 
-  const handleTikTokDownload = async () => {
-   
-    setVideoGenerating(true)
-  
-    // load ffmpeg-core once
-    await ensureFFmpegLoaded()
-  
-    // write image + audio
-    ffmpeg.FS('writeFile', 'image.png', await fetchFile(artist.image_url))
-    ffmpeg.FS('writeFile', 'audio.mp3', await fetchFile(artist.song_url))
-  
-    // run the transcoding
+const handleTikTokDownload = async () => {
+  if (!cardRef.current || !artist.song_url) return;
+  setVideoGenerating(true);
+
+  try {
+    // 1. Generera bild från kortet
+    const canvas = await html2canvas(cardRef.current, {
+      backgroundColor: '#0A0A0F',
+      scale: 2,
+    });
+
+    const dataUrl = canvas.toDataURL('image/png');
+    const res = await fetch(dataUrl);
+    const imageBlob = await res.blob();
+    const imageArrayBuffer = await imageBlob.arrayBuffer();
+
+    // 2. Ladda ffmpeg-core
+    await ensureFFmpegLoaded();
+
+    // 3. Ladda in bild och ljud i ffmpeg FS
+    ffmpeg.FS('writeFile', 'image.png', new Uint8Array(imageArrayBuffer));
+    ffmpeg.FS('writeFile', 'audio.mp3', await fetchFile(artist.song_url));
+
+    // 4. Skapa video
     await ffmpeg.exec([
       '-loop', '1',
       '-i', 'image.png',
@@ -98,23 +110,29 @@ const showModal = (title: string, message: string) => {
       '-vf', 'scale=720:1280,format=yuv420p',
       '-t', '60',
       '-af', 'afade=t=out:st=53:d=7',
-      '-c:a', 'aac','-b:a','128k',
+      '-c:a', 'aac',
+      '-b:a', '128k',
       '-shortest',
       'out.mp4',
-    ])
-  
-    // read and download
-    const data = await ffmpeg.readFile('out.mp4')
-    const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }))
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${artist.name.replace(/\s+/g, '_')}_tiktok.mp4`
-    document.body.append(a)
-    a.click()
-    a.remove()
-  
-    setVideoGenerating(false)
+    ]);
+
+    // 5. Ladda ner videon
+    const data = await ffmpeg.readFile('out.mp4');
+    const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${artist.name.replace(/\s+/g, '_')}_AIvideo.mp4`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch (error) {
+    showModal("Error", "Failed to generate TikTok video.");
+    console.error("TikTok video generation error:", error);
+  } finally {
+    setVideoGenerating(false);
   }
+};
+
   
   const cardClass = useMemo(() => {
     return `p-4 glass border-white/20 max-w-xs sm:max-w-md lg:max-w-2xl ${useNeonBorder ? 'neon-border' : ''} rounded-lg`;
@@ -355,7 +373,7 @@ const showModal = (title: string, message: string) => {
   };
 
   return (
-  <Card className={cardClass} onClick={() => navigate(`/artists/${artist.artist_id}`)}>
+  <Card  ref={cardRef} className={cardClass} onClick={() => navigate(`/artists/${artist.artist_id}`)}>
     <div className="flex items-center justify-between mb-4">
       <Music className="h-6 w-6 text-primary" />
       <div className="flex-grow flex justify-center">
