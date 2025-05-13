@@ -93,101 +93,138 @@ const handleTikTokDownload = async (): Promise<void> => {
   const cardEl = cardRef.current;
   if (!cardEl || !artist.song_url) return;
 
+  // 0) Ge kortet ett id om det saknas
+  if (!cardEl.id) {
+    cardEl.id = `tiktok-card-${Date.now()}`;
+  }
+
   setVideoGenerating(true);
+
   try {
-    // 1) Ladda FFmpeg
+    // 1) Se till att FFmpeg är laddat
+    console.log("⏳ Förbereder FFmpeg...");
     await ensureFFmpegLoaded();
+    console.log("✅ FFmpeg laddad!");
 
-    // 2) Klona kortet & lägg off-screen
-    const clone = cardEl.cloneNode(true) as HTMLElement;
-    const { width, height } = cardEl.getBoundingClientRect();
-    Object.assign(clone.style, {
-      width:       `${width}px`,
-      height:      `${height}px`,
-      position:    'absolute',
-      top:         '-9999px',
-      left:        '-9999px',
-    });
-    document.body.appendChild(clone);
-
-    // 3) Sätt crossOrigin på _alla_ <img> i klonen
-    clone.querySelectorAll<HTMLImageElement>('img').forEach(img => {
-      img.crossOrigin = 'anonymous';
-      // tvinga om-laddning om du vill:
-      const src = img.src;
-      img.src = src;
-    });
-
-    // 4) Byt ut audio-spelaren mot placeholder
-    const audioContainer = clone.querySelector<HTMLElement>('.audio-player-wrapper');
+    // 2) Byt ut audio-spelaren mot din placeholder
+    const audioContainer = cardEl.querySelector<HTMLElement>('.audio-player-wrapper');
+    let originalHTML: string | null = null;
+    let originalStyle: Partial<CSSStyleDeclaration> = {};
     if (audioContainer) {
-      const placeholder = document.createElement('div');
-      placeholder.style.cssText = `
-        background: #000;
-        color: #fff;
-        height: 3rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-      `;
-      placeholder.innerText = 'www.aivisioncontest.com';
-      audioContainer.replaceWith(placeholder);
+      // Spara undan
+      originalHTML  = audioContainer.innerHTML;
+      originalStyle = {
+        backgroundColor: audioContainer.style.backgroundColor,
+        color:           audioContainer.style.color,
+        display:         audioContainer.style.display,
+        justifyContent:  audioContainer.style.justifyContent,
+        alignItems:      audioContainer.style.alignItems,
+        fontSize:        audioContainer.style.fontSize,
+        height:          audioContainer.style.height,
+      };
+
+      // Ersätt med svart ruta + text
+      Object.assign(audioContainer.style, {
+        backgroundColor: '#000',
+        color:           '#fff',
+        display:         'flex',
+        justifyContent:  'center',
+        alignItems:      'center',
+        fontSize:        '1.2rem',
+        height:          '3rem',
+      });
+      audioContainer.innerText = 'www.aivisioncontest.com';
+    } else {
+      console.warn("⚠️ Hittade ingen .audio-player-wrapper – kolla din selector!");
     }
 
-    // 5) Kör snapshot
-    const dataUrl = await toPng(clone, {
-      backgroundColor: '#0A0A0F',
-      pixelRatio:      3,
-      cacheBust:       false,
+    // 3) Ta snapshot
+    console.log("⏳ Tar snapshot av kortet...");
+    const dataUrl = await toPng(cardEl, {
+      backgroundColor: "#0A0A0F",
+      pixelRatio:     3,
+      cacheBust:      false,
     });
+    console.log("✅ Snapshot klart!");
 
-    // 6) Rensa upp klonen
-    document.body.removeChild(clone);
+    // 4) Återställ audio-spelaren
+    if (audioContainer && originalHTML !== null) {
+      audioContainer.innerHTML = originalHTML;
+      // Återställ bara de styles vi rörde
+      if (originalStyle.backgroundColor) audioContainer.style.backgroundColor = originalStyle.backgroundColor;
+      if (originalStyle.color)           audioContainer.style.color           = originalStyle.color;
+      if (originalStyle.display)         audioContainer.style.display         = originalStyle.display;
+      if (originalStyle.justifyContent)  audioContainer.style.justifyContent  = originalStyle.justifyContent;
+      if (originalStyle.alignItems)      audioContainer.style.alignItems      = originalStyle.alignItems;
+      if (originalStyle.fontSize)        audioContainer.style.fontSize        = originalStyle.fontSize;
+      if (originalStyle.height)          audioContainer.style.height          = originalStyle.height;
+    }
 
-    // 7) Resten av din FFmpeg-pipeline…
+    // 5) Konvertera dataUrl till ArrayBuffer
     const imgRes       = await fetch(dataUrl);
     const imageBuffer = await imgRes.arrayBuffer();
+    console.log(`✅ Bilddata: ${imageBuffer.byteLength} bytes`);
 
+    // 6) Hämta ljudfil (med fallback)
+    console.log("⏳ Hämtar ljudfil:", artist.song_url);
     let audioFile: Uint8Array;
     try {
       audioFile = await fetchFile(artist.song_url);
-    } catch {
+      console.log(`✅ Ljudfil: ${audioFile.byteLength} bytes`);
+    } catch (audioError) {
+      console.warn("⚠️ Kunde inte hämta ljud, använder tyst fallback", audioError);
       audioFile = new Uint8Array(1024);
     }
 
-    await ffmpeg.writeFile('image.png', new Uint8Array(imageBuffer));
-    await ffmpeg.writeFile('audio.mp3', audioFile);
-    await ffmpeg.exec([
-      '-loop','1','-i','image.png','-i','audio.mp3',
-      '-c:v','libx264','-preset','ultrafast','-tune','stillimage',
-      '-vf','scale=720:1280:force_original_aspect_ratio=decrease,' +
-           'pad=720:1280:(ow-iw)/2:(oh-ih)/2,format=yuv420p',
-      '-t','30','-af','afade=t=out:st=25:d=5','-c:a','aac','-b:a','128k','-shortest','out.mp4'
-    ]);
+    // 7) Skriv in i FFmpeg:s FS
+    console.log("⏳ Skriver filer...");
+    await ffmpeg.writeFile("image.png", new Uint8Array(imageBuffer));
+    await ffmpeg.writeFile("audio.mp3", audioFile);
 
-    const outData = await ffmpeg.readFile('out.mp4');
+    // 8) Generera videon
+    console.log("⏳ Genererar video med FFmpeg...");
+    await ffmpeg.exec([
+      "-loop","1",
+      "-i","image.png",
+      "-i","audio.mp3",
+      "-c:v","libx264",
+      "-preset","ultrafast",
+      "-tune","stillimage",
+      "-vf","scale=720:1280:force_original_aspect_ratio=decrease,pad=720:1280:(ow-iw)/2:(oh-ih)/2,format=yuv420p",
+      "-t","30",
+      "-af","afade=t=out:st=25:d=5",
+      "-c:a","aac",
+      "-b:a","128k",
+      "-shortest",
+      "out.mp4"
+    ]);
+    console.log("✅ Video genererad!");
+
+    // 9) Läs ut och ladda ner
+    console.log("⏳ Läser ut videofil...");
+    const outData = await ffmpeg.readFile("out.mp4");
+    console.log(`✅ Videofil läst: ${outData.buffer.byteLength} bytes`);
+
     const blobUrl = URL.createObjectURL(
-      new Blob([outData.buffer], { type:'video/mp4' })
+      new Blob([outData.buffer], { type: "video/mp4" })
     );
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href     = blobUrl;
-    a.download = `${artist.name.replace(/\s+/g,'_')}_tiktok.mp4`;
+    a.download = `${artist.name.replace(/\s+/g, "_")}_tiktok.mp4`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(blobUrl);
+    console.log("✅ Nedladdning komplett!");
 
   } catch (err: unknown) {
+    console.error("❌ TikTok video generation error:", err);
     const msg = err instanceof Error ? err.message : String(err);
     alert(`Fel vid generering av video: ${msg}`);
   } finally {
     setVideoGenerating(false);
   }
 };
-
-
-
 
 
 
