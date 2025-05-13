@@ -9,12 +9,13 @@ import { Artist, AverageRating } from './types';
 import StarRating from './StarRating';
 import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedin, FaTiktok } from 'react-icons/fa';
 import html2canvas from 'html2canvas';
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
 import ReactModal from 'react-modal';
+
+import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
 
 const ffmpeg = createFFmpeg({
   log: true,
-  corePath: '/ffmpeg_core_dist/umd/ffmpeg-core.js'
+  corePath: '/ffmpeg_core_dist/umd/ffmpeg-core.js', // se till att den finns i public-mappen
 });
 
 let ffmpegReady = false;
@@ -82,69 +83,58 @@ const showModal = (title: string, message: string) => {
 const handleTikTokDownload = async () => {
   if (!cardRef.current || !artist.song_url) return;
   setVideoGenerating(true);
-try {
-// Create a new FFmpeg instance each time
-const ffmpeg = createFFmpeg({
-log: true,
-corePath: '/ffmpeg_core_dist/umd/ffmpeg-core.js'
-});
-// Load FFmpeg
-await ffmpeg.load();
 
-// 1. Generate image from the card
-const canvas = await html2canvas(cardRef.current, {
-  backgroundColor: '#0A0A0F',
-  scale: 2,
-});
+  try {
+    // 1. Ta screenshot av kortet
+    const canvas = await html2canvas(cardRef.current, {
+      backgroundColor: '#0A0A0F',
+      scale: 2,
+    });
 
-const dataUrl = canvas.toDataURL('image/png');
-const res = await fetch(dataUrl);
-const imageBlob = await res.blob();
-const imageArrayBuffer = await imageBlob.arrayBuffer();
+    const dataUrl = canvas.toDataURL('image/png');
+    const res = await fetch(dataUrl);
+    const imageBlob = await res.blob();
+    const imageArrayBuffer = await imageBlob.arrayBuffer();
 
-// 2. Write files to FFmpeg filesystem
-// Use fetchFile for audio to ensure proper loading
-const audioFile = await fetchFile(artist.song_url);
+    // 2. Ladda ffmpeg
+    await ensureFFmpegLoaded();
 
-ffmpeg.FS('writeFile', 'image.png', new Uint8Array(imageArrayBuffer));
-ffmpeg.FS('writeFile', 'audio.mp3', audioFile);
+    // 3. Skriv bild + ljud till filsystemet
+    ffmpeg.FS('writeFile', 'image.png', new Uint8Array(imageArrayBuffer));
+    ffmpeg.FS('writeFile', 'audio.mp3', await fetchFile(artist.song_url));
 
-// 3. Create video
-await ffmpeg.run(
-  '-loop', '1',
-  '-i', 'image.png',
-  '-i', 'audio.mp3',
-  '-c:v', 'libx264',
-  '-vf', 'scale=720:1280,format=yuv420p',
-  '-t', '60',
-  '-af', 'afade=t=out:st=53:d=7',
-  '-c:a', 'aac',
-  '-b:a', '128k',
-  '-shortest',
-  'out.mp4'
-);
+    // 4. Skapa video
+    await ffmpeg.run(
+      '-loop', '1',
+      '-i', 'image.png',
+      '-i', 'audio.mp3',
+      '-c:v', 'libx264',
+      '-vf', 'scale=720:1280,format=yuv420p',
+      '-t', '60',
+      '-af', 'afade=t=out:st=53:d=7',
+      '-c:a', 'aac',
+      '-b:a', '128k',
+      '-shortest',
+      'out.mp4'
+    );
 
-// 4. Download the video
-const data = ffmpeg.FS('readFile', 'out.mp4');
-const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
-const a = document.createElement('a');
-a.href = url;
-a.download = `${artist.name.replace(/\s+/g, '_')}_AIvideo.mp4`;
-document.body.appendChild(a);
-a.click();
-a.remove();
+    // 5. Ladda ner resultat
+    const data = ffmpeg.FS('readFile', 'out.mp4');
+    const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${artist.name.replace(/\s+/g, '_')}_AIvideo.mp4`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
 
-// Clean up FFmpeg resources
-ffmpeg.FS('unlink', 'image.png');
-ffmpeg.FS('unlink', 'audio.mp3');
-ffmpeg.FS('unlink', 'out.mp4');
-} catch (error) {
-showModal("Error", "Failed to generate TikTok video.");
-console.error("TikTok video generation error:", error);
-} finally {
-setVideoGenerating(false);
-}
+  } catch (error) {
+    console.error("TikTok video generation error:", error);
+  } finally {
+    setVideoGenerating(false);
+  }
 };
+
   
   const cardClass = useMemo(() => {
     return `p-4 glass border-white/20 max-w-xs sm:max-w-md lg:max-w-2xl ${useNeonBorder ? 'neon-border' : ''} rounded-lg`;
