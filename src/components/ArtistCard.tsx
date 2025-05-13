@@ -78,7 +78,7 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
   const shareText = `Kolla in ${artist.name} på min webbplats!`;
   const [username, setUsername] = useState<string>("");
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
- 
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoGenerating, setVideoGenerating] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -93,12 +93,14 @@ const handleTikTokDownload = async (): Promise<void> => {
   const cardEl = cardRef.current;
   if (!cardEl || !artist.song_url) return;
 
-  // 0) Se till att kortet har ett id
+  // 0) Se till att kortet har ett id för toPng
   if (!cardEl.id) {
     cardEl.id = `tiktok-card-${Date.now()}`;
   }
 
+  // starta spinner + nollställ tidigare videoUrl
   setVideoGenerating(true);
+  setVideoUrl(null);
 
   try {
     // 1) Ladda FFmpeg
@@ -112,12 +114,13 @@ const handleTikTokDownload = async (): Promise<void> => {
     let origStyle: Partial<CSSStyleDeclaration> = {};
     if (audioWrapper) {
       origHTML = audioWrapper.innerHTML;
-      // Spara inline-styles
+      // spara de inline-styles vi tänker skriva över
       ["backgroundColor","color","display","justifyContent","alignItems","fontSize","height"]
         .forEach(prop => {
           // @ts-ignore
           origStyle[prop] = audioWrapper.style[prop];
         });
+
       Object.assign(audioWrapper.style, {
         backgroundColor: "#000",
         color:           "#fff",
@@ -128,9 +131,11 @@ const handleTikTokDownload = async (): Promise<void> => {
         height:          "3rem",
       });
       audioWrapper.innerText = "www.aivisioncontest.com";
+    } else {
+      console.warn("⚠️ Ingen .audio-player-wrapper hittades – kontrollera din JSX!");
     }
 
-    // 3) Ta PNG-snapshot
+    // 3) Ta snapshot av kortet
     console.log("⏳ Tar snapshot av kortet...");
     const dataUrl = await toPng(cardEl, {
       backgroundColor: "#0A0A0F",
@@ -148,12 +153,12 @@ const handleTikTokDownload = async (): Promise<void> => {
       });
     }
 
-    // 5) Konvertera PNG → ArrayBuffer
+    // 5) PNG → ArrayBuffer
     const imgRes       = await fetch(dataUrl);
     const imageBuffer = await imgRes.arrayBuffer();
     console.log(`✅ Bilddata: ${imageBuffer.byteLength} bytes`);
 
-    // 6) Hämta ljudfil (fallback)
+    // 6) Hämta ljudfil (med fallback)
     console.log("⏳ Hämtar ljudfil:", artist.song_url);
     let audioFile: Uint8Array;
     try {
@@ -164,62 +169,45 @@ const handleTikTokDownload = async (): Promise<void> => {
       audioFile = new Uint8Array(1024);
     }
 
-    // 7) Skriv snapshot + ljud in i FFmpeg FS
+    // 7) Skriv in i FFmpeg:s filer
     console.log("⏳ Skriver filer till FFmpeg FS...");
     await ffmpeg.writeFile("image.png", new Uint8Array(imageBuffer));
     await ffmpeg.writeFile("audio.mp3", audioFile);
 
-    // 8) Generera MP4
+    // 8) Generera MP4 med FFmpeg
     console.log("⏳ Genererar video med FFmpeg...");
     await ffmpeg.exec([
-      "-loop","1","-i","image.png","-i","audio.mp3",
-      "-c:v","libx264","-preset","ultrafast","-tune","stillimage",
-      "-vf","scale=720:1280:force_original_aspect_ratio=decrease," +
-           "pad=720:1280:(ow-iw)/2:(oh-ih)/2,format=yuv420p",
-      "-t","30","-af","afade=t=out:st=25:d=5",
-      "-c:a","aac","-b:a","128k","-shortest","out.mp4"
+      "-loop","1",
+      "-i","image.png",
+      "-i","audio.mp3",
+      "-c:v","libx264",
+      "-preset","ultrafast",
+      "-tune","stillimage",
+      "-vf",
+        "scale=720:1280:force_original_aspect_ratio=decrease," +
+        "pad=720:1280:(ow-iw)/2:(oh-ih)/2,format=yuv420p",
+      "-t","30",
+      "-af","afade=t=out:st=25:d=5",
+      "-c:a","aac",
+      "-b:a","128k",
+      "-shortest",
+      "out.mp4"
     ]);
     console.log("✅ Video genererad!");
 
-    // 9) Läs ut MP4
+    // 9) Läs ut videon
     console.log("⏳ Läser ut videofil...");
     const outData = await ffmpeg.readFile("out.mp4");
     console.log(`✅ Videofil läst: ${outData.buffer.byteLength} bytes`);
 
-    // 10) Skapa blob-URL
-    const blob = new Blob([outData.buffer], { type: "video/mp4" });
+    // 10) Skapa blob-URL och spara i state
+    const blob    = new Blob([outData.buffer], { type: "video/mp4" });
     const blobUrl = URL.createObjectURL(blob);
+    setVideoUrl(blobUrl);
 
-    // Detektera iOS
-    const isIOS = /iP(ad|hone|od)/.test(navigator.platform)
-      || (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 1);
-
-    if (isIOS) {
-      // Försök Web Share API först
-      if (navigator.share && window.File) {
-        try {
-          const file = new File([blob], `${artist.name}_tiktok.mp4`, { type: "video/mp4" });
-          await navigator.share({ files: [file], title: "TikTok video" });
-        } catch (shareError) {
-          console.warn("Share misslyckades, öppnar i ny flik:", shareError);
-          window.open(blobUrl, "_blank");
-        }
-      } else {
-        // Fallback: öppna i ny flik
-        window.open(blobUrl, "_blank");
-      }
-    } else {
-      // Desktop: ladda ner automatiskt
-      const a = document.createElement("a");
-      a.href     = blobUrl;
-      a.download = `${artist.name.replace(/\s+/g,"_")}_tiktok.mp4`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-
-    // Rensa upp blobURL efter en stund
+    // Rensa upp blobUrl efter en stund
     setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+
   } catch (err: unknown) {
     console.error("❌ TikTok video generation error:", err);
     const msg = err instanceof Error ? err.message : String(err);
@@ -817,6 +805,19 @@ const handleTikTokDownload = async (): Promise<void> => {
         </div>
       )}
     </div>
+    {videoUrl && (
+    <div className="mt-4 text-center">
+      <p className="text-white mb-2">🎥 Din video är klar!</p>
+      <a
+        href={videoUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-block px-4 py-2 bg-blue-500 text-white rounded"
+      >
+        Öppna / Spara video
+      </a>
+    </div>
+  )}
   </Card>
   
 );
