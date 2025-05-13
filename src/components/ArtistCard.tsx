@@ -93,36 +93,97 @@ const handleTikTokDownload = async (): Promise<void> => {
   const cardEl = cardRef.current;
   if (!cardEl || !artist.song_url) return;
 
-  // Se till att vi har ett id (för att inte störa CORS‐cache)
+  // Se till att kortet har ett giltigt id
   if (!cardEl.id) {
     cardEl.id = `tiktok-card-${Date.now()}`;
   }
 
   setVideoGenerating(true);
-  try {
-    await ensureFFmpegLoaded();
 
-    console.log("⏳ Tar snapshot av kortet (ingen cache-bust)...");
+  try {
+    // 1) Ladda FFmpeg
+    console.log("⏳ Förbereder FFmpeg...");
+    await ensureFFmpegLoaded();
+    console.log("✅ FFmpeg laddad!");
+
+    // 2) Ta snapshot av cardEl
+    console.log("⏳ Tar snapshot av kortet...");
     const dataUrl = await toPng(cardEl, {
-      backgroundColor: '#0A0A0F',
+      backgroundColor: "#0A0A0F",
       pixelRatio:     3,
-      cacheBust:      false,  // om du har CORS-regler på S3
+      cacheBust:      false
     });
     console.log("✅ Snapshot klart!");
 
-    // Hämta buffern precis som tidigare
+    // 3) Hämta bild-buffer
     const imgRes       = await fetch(dataUrl);
     const imageBuffer = await imgRes.arrayBuffer();
     console.log(`✅ Bilddata: ${imageBuffer.byteLength} bytes`);
 
-    // …resten av din FFmpeg‐pipeline (skriv fil, kör, ladda ner) …
+    // 4) Hämta ljudfil (med fallback)
+    console.log("⏳ Hämtar ljudfil:", artist.song_url);
+    let audioFile: Uint8Array;
+    try {
+      audioFile = await fetchFile(artist.song_url);
+      console.log(`✅ Ljudfil: ${audioFile.byteLength} bytes`);
+    } catch (audioError) {
+      console.warn("⚠️ Kunde inte hämta ljud, använder tyst fallback", audioError);
+      audioFile = new Uint8Array(1024);
+    }
+
+    // 5) Skriv in i FFmpeg:s virtuella filsystem
+    console.log("⏳ Skriver filer till FFmpeg FS...");
+    await ffmpeg.writeFile("image.png", new Uint8Array(imageBuffer));
+    await ffmpeg.writeFile("audio.mp3", audioFile);
+    console.log("✅ Filer skrivna!");
+
+    // 6) Kör FFmpeg-kommando
+    console.log("⏳ Genererar video med FFmpeg...");
+    await ffmpeg.exec([
+      "-loop", "1",
+      "-i",    "image.png",
+      "-i",    "audio.mp3",
+      "-c:v",  "libx264",
+      "-preset","ultrafast",
+      "-tune", "stillimage",
+      "-vf",
+        "scale=720:1280:force_original_aspect_ratio=decrease," +
+        "pad=720:1280:(ow-iw)/2:(oh-ih)/2,format=yuv420p",
+      "-t",    "30",
+      "-af",   "afade=t=out:st=25:d=5",
+      "-c:a",  "aac",
+      "-b:a",  "128k",
+      "-shortest",
+      "out.mp4"
+    ]);
+    console.log("✅ Video genererad!");
+
+    // 7) Läs ut MP4 och ladda ner
+    console.log("⏳ Läser ut videofil...");
+    const data = await ffmpeg.readFile("out.mp4");
+    console.log(`✅ Videofil läst: ${data.buffer.byteLength} bytes`);
+
+    const blobUrl = URL.createObjectURL(
+      new Blob([data.buffer], { type: "video/mp4" })
+    );
+    const a = document.createElement("a");
+    a.href     = blobUrl;
+    a.download = `${artist.name.replace(/\s+/g, "_")}_tiktok.mp4`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+
+    console.log("✅ Nedladdning komplett!");
   } catch (err: unknown) {
+    console.error("❌ TikTok video generation error:", err);
     const msg = err instanceof Error ? err.message : String(err);
     alert(`Fel vid generering av video: ${msg}`);
   } finally {
     setVideoGenerating(false);
   }
 };
+
 
 
   
