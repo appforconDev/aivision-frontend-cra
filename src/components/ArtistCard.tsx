@@ -109,7 +109,7 @@ const handleTikTokDownload = async (): Promise<void> => {
     const dataUrl = await toPng(cardEl, {
       backgroundColor: '#0A0A0F',
       pixelRatio:     3,      // 3× uppskalning
-      cacheBust:      true,   // tvinga omhämtning av bilder
+      cacheBust:      false,   // tvinga omhämtning av bilder
     });
     console.log("✅ Snapshot skapat");
 
