@@ -106,7 +106,7 @@ const handleTikTokDownload = async (): Promise<void> => {
     const dataUrl = await toPng(cardEl, {
       backgroundColor: '#0A0A0F',
       pixelRatio:     3,
-      cacheBust:      false,    // om du har CORS-regler på S3
+      cacheBust:      false,  // om du har CORS-regler på S3
     });
     console.log("✅ Snapshot klart!");
 
@@ -386,6 +386,7 @@ const handleTikTokDownload = async (): Promise<void> => {
       <div className="mb-4 rounded-lg overflow-hidden">
         <img
           src={artist.image_url}
+          crossOrigin="anonymous"
           alt={artist.name}
           className="w-full h-auto object-contain rounded-lg"
           onError={(e) => {
