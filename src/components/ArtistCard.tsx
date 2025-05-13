@@ -11,21 +11,23 @@ import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedin, FaTiktok } from 'react
 import html2canvas from 'html2canvas';
 import ReactModal from 'react-modal';
 
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
+import { FFmpeg } from "@ffmpeg/ffmpeg";
+import { fetchFile } from "@ffmpeg/util";
 
-const ffmpeg = createFFmpeg({
+
+const ffmpeg = new FFmpeg({
   log: true,
-  corePath: '/ffmpeg_core_dist/umd/ffmpeg-core.js', // se till att den finns i public-mappen
+  corePath: "/ffmpeg_core_dist/umd/ffmpeg-core.js", // must live in your public folder
 });
 
-let ffmpegReady = false;
 
-const ensureFFmpegLoaded = async () => {
+let ffmpegReady = false;
+async function ensureFFmpeg() {
   if (!ffmpegReady) {
     await ffmpeg.load();
     ffmpegReady = true;
   }
-};
+}
 
 
 interface ArtistCardProps {
@@ -97,25 +99,21 @@ const handleTikTokDownload = async () => {
     const imageArrayBuffer = await imageBlob.arrayBuffer();
 
     // 2. Ladda ffmpeg
-    await ensureFFmpegLoaded();
-
-    // 3. Skriv bild + ljud till filsystemet
-    ffmpeg.FS('writeFile', 'image.png', new Uint8Array(imageArrayBuffer));
-    ffmpeg.FS('writeFile', 'audio.mp3', await fetchFile(artist.song_url));
-
-    // 4. Skapa video
+    await ensureFFmpeg();
+    ffmpeg.FS("writeFile", "image.png", new Uint8Array(imageArrayBuffer));
+    ffmpeg.FS("writeFile", "audio.mp3", await fetchFile(artist.song_url));
     await ffmpeg.run(
-      '-loop', '1',
-      '-i', 'image.png',
-      '-i', 'audio.mp3',
-      '-c:v', 'libx264',
-      '-vf', 'scale=720:1280,format=yuv420p',
-      '-t', '60',
-      '-af', 'afade=t=out:st=53:d=7',
-      '-c:a', 'aac',
-      '-b:a', '128k',
-      '-shortest',
-      'out.mp4'
+      "-loop", "1",
+      "-i", "image.png",
+      "-i", "audio.mp3",
+      "-c:v", "libx264",
+      "-vf", "scale=720:1280,format=yuv420p",
+      "-t", "60",
+      "-af", "afade=t=out:st=53:d=7",
+      "-c:a", "aac",
+      "-b:a", "128k",
+      "-shortest",
+      "out.mp4"
     );
 
     // 5. Ladda ner resultat
