@@ -10,6 +10,23 @@ import StarRating from './StarRating';
 import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedin, FaTiktok } from 'react-icons/fa';
 import html2canvas from 'html2canvas';
 import ReactModal from 'react-modal';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile } from '@ffmpeg/util';
+
+// Instansiera FFmpeg med CDN-corePath (funkar i CRA)
+const ffmpeg = new FFmpeg({
+  log: true,
+  corePath: 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.2/dist/ffmpeg-core.js'
+});
+
+let ffmpegReady = false;
+async function ensureFFmpegLoaded() {
+  if (!ffmpegReady) {
+    await ffmpeg.load();
+    ffmpegReady = true;
+  }
+}
+
 
 
 
@@ -66,55 +83,57 @@ const showModal = (title: string, message: string) => {
 };
 
 const handleTikTokDownload = async () => {
-  if (!cardRef.current || !artist.song_url) return
-  setVideoGenerating(true)
+  if (!cardRef.current || !artist.song_url) return;
+  setVideoGenerating(true);
 
   try {
-    // 1) Stega: ta en stillbild av kortet
-    const canvas = await html2canvas(cardRef.current, { backgroundColor: '#0A0A0F', scale: 2 })
-    const imageStream = (canvas as any).captureStream()  // VideoTrack
+    // 1) Skapa stillbild av kortet
+    const canvas = await html2canvas(cardRef.current, {
+      backgroundColor: '#0A0A0F',
+      scale: 2,
+    });
+    const dataUrl = canvas.toDataURL('image/png');
+    const res = await fetch(dataUrl);
+    const imageBuffer = new Uint8Array(await res.arrayBuffer());
 
-    // 2) Skapa en Audio-element och fånga dess stream
-    const audio = new Audio(artist.song_url)
-    audio.crossOrigin = 'anonymous'
-    await audio.play().catch(() => {})   // vissa browsers kräver att man startar så att det är “primed”
-    const audioStream = (audio as any).captureStream()
+    // 2) Ladda FFmpeg
+    await ensureFFmpegLoaded();
 
-    // 3) Kombinera tracks i en enda MediaStream
-    const mixedStream = new MediaStream([
-      ...imageStream.getVideoTracks(),
-      ...audioStream.getAudioTracks()
-    ])
+    // 3) Skriv bild + ljud
+    ffmpeg.FS('writeFile', 'image.png', imageBuffer);
+    ffmpeg.FS('writeFile', 'audio.mp3', await fetchFile(artist.song_url));
 
-    // 4) Spela in med MediaRecorder
-    const recorder = new MediaRecorder(mixedStream, { mimeType: 'video/webm; codecs=vp8,opus' })
-    const chunks: BlobPart[] = []
-    recorder.ondataavailable = (e) => chunks.push(e.data)
-    recorder.start()
+    // 4) Kör konvertering
+    await ffmpeg.run(
+      '-loop', '1',
+      '-i', 'image.png',
+      '-i', 'audio.mp3',
+      '-c:v', 'libx264',
+      '-vf', 'scale=720:1280,format=yuv420p',
+      '-t', '60',
+      '-af', 'afade=t=out:st=53:d=7',
+      '-c:a', 'aac',
+      '-b:a', '128k',
+      '-shortest',
+      'out.mp4'
+    );
 
-    // 5) Efter 60s stoppas inspelningen
-    setTimeout(() => {
-      recorder.stop()
-      audio.pause()
-    }, 60_000)
-
-    recorder.onstop = () => {
-      const blob = new Blob(chunks, { type: 'video/webm' })
-      const url  = URL.createObjectURL(blob)
-      const a    = document.createElement('a')
-      a.href     = url
-      a.download = `${artist.name.replace(/\s+/g,'_')}_tiktok.webm`
-      document.body.append(a)
-      a.click()
-      a.remove()
-      URL.revokeObjectURL(url)
-      setVideoGenerating(false)
-    }
+    // 5) Läs ut och ladda ner MP4
+    const data = ffmpeg.FS('readFile', 'out.mp4');
+    const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${artist.name.replace(/\s+/g, '_')}_tiktok.mp4`;
+    document.body.append(a);
+    a.click();
+    a.remove();
   } catch (err) {
-    console.error('TikTok-recording error:', err)
-    setVideoGenerating(false)
+    console.error('TikTok video generation error:', err);
+  } finally {
+    setVideoGenerating(false);
   }
-}
+};
+
 
   
   const cardClass = useMemo(() => {
