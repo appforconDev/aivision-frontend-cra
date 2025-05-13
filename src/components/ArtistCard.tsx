@@ -96,26 +96,32 @@ const handleTikTokDownload = async (): Promise<void> => {
   setVideoGenerating(true);
   try {
     // 1) Ladda FFmpeg
-    console.log("⏳ Förbereder FFmpeg...");
     await ensureFFmpegLoaded();
-    console.log("✅ FFmpeg laddad!");
 
-    // 2) Klona kortet och positionera utanför vyn
+    // 2) Klona kortet & lägg off-screen
     const clone = cardEl.cloneNode(true) as HTMLElement;
-    // Ta med alla CSS-stilar för att det ska ritas identiskt
     const { width, height } = cardEl.getBoundingClientRect();
-    clone.style.width  = `${width}px`;
-    clone.style.height = `${height}px`;
-    clone.style.position = "absolute";
-    clone.style.top      = "-9999px";
-    clone.style.left     = "-9999px";
+    Object.assign(clone.style, {
+      width:       `${width}px`,
+      height:      `${height}px`,
+      position:    'absolute',
+      top:         '-9999px',
+      left:        '-9999px',
+    });
     document.body.appendChild(clone);
 
-    // 3) Applicera placeholder på klonen (hitta wrappern i klonen!)
-    const audioContainer = clone.querySelector<HTMLElement>(".audio-player-wrapper");
+    // 3) Sätt crossOrigin på _alla_ <img> i klonen
+    clone.querySelectorAll<HTMLImageElement>('img').forEach(img => {
+      img.crossOrigin = 'anonymous';
+      // tvinga om-laddning om du vill:
+      const src = img.src;
+      img.src = src;
+    });
+
+    // 4) Byt ut audio-spelaren mot placeholder
+    const audioContainer = clone.querySelector<HTMLElement>('.audio-player-wrapper');
     if (audioContainer) {
-      // Ersätt hela containern med en enkel <div>
-      const placeholder = document.createElement("div");
+      const placeholder = document.createElement('div');
       placeholder.style.cssText = `
         background: #000;
         color: #fff;
@@ -125,85 +131,61 @@ const handleTikTokDownload = async (): Promise<void> => {
         justify-content: center;
         font-size: 1.2rem;
       `;
-      placeholder.innerText = "www.aivisioncontest.com";
+      placeholder.innerText = 'www.aivisioncontest.com';
       audioContainer.replaceWith(placeholder);
-    } else {
-      console.warn("⚠️ Kunde inte hitta .audio-player-wrapper i klonen");
     }
 
-    // 4) Ta snapshot av klonen
-    console.log("⏳ Snapshot av klonat kort...");
+    // 5) Kör snapshot
     const dataUrl = await toPng(clone, {
-      backgroundColor: "#0A0A0F",
-      pixelRatio:     3,
-      cacheBust:      false,
+      backgroundColor: '#0A0A0F',
+      pixelRatio:      3,
+      cacheBust:       false,
     });
-    console.log("✅ Snapshot klart!");
 
-    // 5) Rensa upp – ta bort klonen
+    // 6) Rensa upp klonen
     document.body.removeChild(clone);
 
-    // 6) Konvertera dataUrl till ArrayBuffer
+    // 7) Resten av din FFmpeg-pipeline…
     const imgRes       = await fetch(dataUrl);
     const imageBuffer = await imgRes.arrayBuffer();
-    console.log(`✅ Bilddata: ${imageBuffer.byteLength} bytes`);
 
-    // 7) Hämta ljud (med fallback)
-    console.log("⏳ Hämtar ljudfil:", artist.song_url);
     let audioFile: Uint8Array;
     try {
       audioFile = await fetchFile(artist.song_url);
     } catch {
-      console.warn("⚠️ Kunne inte hämta ljud, använder tyst fallback");
       audioFile = new Uint8Array(1024);
     }
 
-    // 8) Skriv in i FFmpeg FS
-    await ffmpeg.writeFile("image.png", new Uint8Array(imageBuffer));
-    await ffmpeg.writeFile("audio.mp3", audioFile);
-
-    // 9) Generera videon
-    console.log("⏳ Genererar video med FFmpeg...");
+    await ffmpeg.writeFile('image.png', new Uint8Array(imageBuffer));
+    await ffmpeg.writeFile('audio.mp3', audioFile);
     await ffmpeg.exec([
-      "-loop","1",
-      "-i","image.png",
-      "-i","audio.mp3",
-      "-c:v","libx264",
-      "-preset","ultrafast",
-      "-tune","stillimage",
-      "-vf","scale=720:1280:force_original_aspect_ratio=decrease," +
-           "pad=720:1280:(ow-iw)/2:(oh-ih)/2,format=yuv420p",
-      "-t","30",
-      "-af","afade=t=out:st=25:d=5",
-      "-c:a","aac",
-      "-b:a","128k",
-      "-shortest",
-      "out.mp4"
+      '-loop','1','-i','image.png','-i','audio.mp3',
+      '-c:v','libx264','-preset','ultrafast','-tune','stillimage',
+      '-vf','scale=720:1280:force_original_aspect_ratio=decrease,' +
+           'pad=720:1280:(ow-iw)/2:(oh-ih)/2,format=yuv420p',
+      '-t','30','-af','afade=t=out:st=25:d=5','-c:a','aac','-b:a','128k','-shortest','out.mp4'
     ]);
-    console.log("✅ Video genererad!");
 
-    // 10) Läs ut & trigga nedladdning
-    const outData = await ffmpeg.readFile("out.mp4");
+    const outData = await ffmpeg.readFile('out.mp4');
     const blobUrl = URL.createObjectURL(
-      new Blob([outData.buffer], { type: "video/mp4" })
+      new Blob([outData.buffer], { type:'video/mp4' })
     );
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href     = blobUrl;
-    a.download = `${artist.name.replace(/\s+/g, "_")}_tiktok.mp4`;
+    a.download = `${artist.name.replace(/\s+/g,'_')}_tiktok.mp4`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(blobUrl);
 
-    console.log("✅ Nedladdning komplett!");
   } catch (err: unknown) {
-    console.error("❌ TikTok video generation error:", err);
     const msg = err instanceof Error ? err.message : String(err);
     alert(`Fel vid generering av video: ${msg}`);
   } finally {
     setVideoGenerating(false);
   }
 };
+
 
 
 
