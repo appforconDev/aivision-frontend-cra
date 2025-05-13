@@ -93,7 +93,7 @@ const handleTikTokDownload = async (): Promise<void> => {
   const cardEl = cardRef.current;
   if (!cardEl || !artist.song_url) return;
 
-  // Se till att ditt Card har ett id (för toPng)
+  // 0) Se till att kortet har ett id
   if (!cardEl.id) {
     cardEl.id = `tiktok-card-${Date.now()}`;
   }
@@ -107,22 +107,18 @@ const handleTikTokDownload = async (): Promise<void> => {
     console.log("✅ FFmpeg laddad!");
 
     // 2) Byt ut audio-spelaren mot placeholder
-    const audioContainer = cardEl.querySelector<HTMLElement>(".audio-player-wrapper");
-    let originalHTML: string | null = null;
-    let originalStyle: Partial<CSSStyleDeclaration> = {};
-    if (audioContainer) {
-      originalHTML = audioContainer.innerHTML;
-      originalStyle = {
-        backgroundColor: audioContainer.style.backgroundColor,
-        color:           audioContainer.style.color,
-        display:         audioContainer.style.display,
-        justifyContent:  audioContainer.style.justifyContent,
-        alignItems:      audioContainer.style.alignItems,
-        fontSize:        audioContainer.style.fontSize,
-        height:          audioContainer.style.height,
-      };
-
-      Object.assign(audioContainer.style, {
+    const audioWrapper = cardEl.querySelector<HTMLElement>(".audio-player-wrapper");
+    let origHTML: string | null = null;
+    let origStyle: Partial<CSSStyleDeclaration> = {};
+    if (audioWrapper) {
+      origHTML = audioWrapper.innerHTML;
+      // Spara inline-styles
+      ["backgroundColor","color","display","justifyContent","alignItems","fontSize","height"]
+        .forEach(prop => {
+          // @ts-ignore
+          origStyle[prop] = audioWrapper.style[prop];
+        });
+      Object.assign(audioWrapper.style, {
         backgroundColor: "#000",
         color:           "#fff",
         display:         "flex",
@@ -131,12 +127,10 @@ const handleTikTokDownload = async (): Promise<void> => {
         fontSize:        "1.2rem",
         height:          "3rem",
       });
-      audioContainer.innerText = "www.aivisioncontest.com";
-    } else {
-      console.warn("⚠️ Ingen .audio-player-wrapper hittades – kontrollera din JSX!");
+      audioWrapper.innerText = "www.aivisioncontest.com";
     }
 
-    // 3) Ta snapshot
+    // 3) Ta PNG-snapshot
     console.log("⏳ Tar snapshot av kortet...");
     const dataUrl = await toPng(cardEl, {
       backgroundColor: "#0A0A0F",
@@ -146,77 +140,86 @@ const handleTikTokDownload = async (): Promise<void> => {
     console.log("✅ Snapshot klart!");
 
     // 4) Återställ audio-spelaren
-    if (audioContainer && originalHTML !== null) {
-      audioContainer.innerHTML = originalHTML;
-      if (originalStyle.backgroundColor) audioContainer.style.backgroundColor = originalStyle.backgroundColor;
-      if (originalStyle.color)           audioContainer.style.color           = originalStyle.color;
-      if (originalStyle.display)         audioContainer.style.display         = originalStyle.display;
-      if (originalStyle.justifyContent)  audioContainer.style.justifyContent  = originalStyle.justifyContent;
-      if (originalStyle.alignItems)      audioContainer.style.alignItems      = originalStyle.alignItems;
-      if (originalStyle.fontSize)        audioContainer.style.fontSize        = originalStyle.fontSize;
-      if (originalStyle.height)          audioContainer.style.height          = originalStyle.height;
+    if (audioWrapper && origHTML !== null) {
+      audioWrapper.innerHTML = origHTML;
+      Object.entries(origStyle).forEach(([key, val]) => {
+        // @ts-ignore
+        audioWrapper.style[key] = val!;
+      });
     }
 
-    // 5) Bild → ArrayBuffer
+    // 5) Konvertera PNG → ArrayBuffer
     const imgRes       = await fetch(dataUrl);
     const imageBuffer = await imgRes.arrayBuffer();
     console.log(`✅ Bilddata: ${imageBuffer.byteLength} bytes`);
 
-    // 6) Ljudfil (med fallback)
+    // 6) Hämta ljudfil (fallback)
     console.log("⏳ Hämtar ljudfil:", artist.song_url);
     let audioFile: Uint8Array;
     try {
       audioFile = await fetchFile(artist.song_url);
       console.log(`✅ Ljudfil: ${audioFile.byteLength} bytes`);
     } catch {
-      console.warn("⚠️ Använder tyst ljud-fallback");
+      console.warn("⚠️ Använder tyst audio-fallback");
       audioFile = new Uint8Array(1024);
     }
 
-    // 7) Skriv till FFmpeg FS
+    // 7) Skriv snapshot + ljud in i FFmpeg FS
     console.log("⏳ Skriver filer till FFmpeg FS...");
     await ffmpeg.writeFile("image.png", new Uint8Array(imageBuffer));
     await ffmpeg.writeFile("audio.mp3", audioFile);
 
-    // 8) Generera video
+    // 8) Generera MP4
     console.log("⏳ Genererar video med FFmpeg...");
     await ffmpeg.exec([
-      "-loop","1",
-      "-i","image.png",
-      "-i","audio.mp3",
-      "-c:v","libx264",
-      "-preset","ultrafast",
-      "-tune","stillimage",
-      "-vf",
-        "scale=720:1280:force_original_aspect_ratio=decrease," +
-        "pad=720:1280:(ow-iw)/2:(oh-ih)/2,format=yuv420p",
-      "-t","30",
-      "-af","afade=t=out:st=25:d=5",
-      "-c:a","aac",
-      "-b:a","128k",
-      "-shortest",
-      "out.mp4"
+      "-loop","1","-i","image.png","-i","audio.mp3",
+      "-c:v","libx264","-preset","ultrafast","-tune","stillimage",
+      "-vf","scale=720:1280:force_original_aspect_ratio=decrease," +
+           "pad=720:1280:(ow-iw)/2:(oh-ih)/2,format=yuv420p",
+      "-t","30","-af","afade=t=out:st=25:d=5",
+      "-c:a","aac","-b:a","128k","-shortest","out.mp4"
     ]);
     console.log("✅ Video genererad!");
 
-    // 9) Läs och ladda ner
+    // 9) Läs ut MP4
     console.log("⏳ Läser ut videofil...");
     const outData = await ffmpeg.readFile("out.mp4");
     console.log(`✅ Videofil läst: ${outData.buffer.byteLength} bytes`);
 
-    const blobUrl = URL.createObjectURL(
-      new Blob([outData.buffer], { type: "video/mp4" })
-    );
-    const a = document.createElement("a");
-    a.href     = blobUrl;
-    a.download = `${artist.name.replace(/\s+/g, "_")}_tiktok.mp4`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(blobUrl);
+    // 10) Skapa blob-URL
+    const blob = new Blob([outData.buffer], { type: "video/mp4" });
+    const blobUrl = URL.createObjectURL(blob);
 
-    // 10) ladda om sidan så Card återställs
-    window.location.reload();
+    // Detektera iOS
+    const isIOS = /iP(ad|hone|od)/.test(navigator.platform)
+      || (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 1);
+
+    if (isIOS) {
+      // Försök Web Share API först
+      if (navigator.share && window.File) {
+        try {
+          const file = new File([blob], `${artist.name}_tiktok.mp4`, { type: "video/mp4" });
+          await navigator.share({ files: [file], title: "TikTok video" });
+        } catch (shareError) {
+          console.warn("Share misslyckades, öppnar i ny flik:", shareError);
+          window.open(blobUrl, "_blank");
+        }
+      } else {
+        // Fallback: öppna i ny flik
+        window.open(blobUrl, "_blank");
+      }
+    } else {
+      // Desktop: ladda ner automatiskt
+      const a = document.createElement("a");
+      a.href     = blobUrl;
+      a.download = `${artist.name.replace(/\s+/g,"_")}_tiktok.mp4`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // Rensa upp blobURL efter en stund
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
   } catch (err: unknown) {
     console.error("❌ TikTok video generation error:", err);
     const msg = err instanceof Error ? err.message : String(err);
