@@ -20,13 +20,13 @@ const ffmpeg = new FFmpeg({
 });
 
 let ffmpegReady = false;
+
 async function ensureFFmpegLoaded() {
   if (!ffmpegReady) {
     await ffmpeg.load();
     ffmpegReady = true;
   }
 }
-
 
 
 
@@ -85,7 +85,7 @@ const showModal = (title: string, message: string) => {
 const handleTikTokDownload = async () => {
   if (!cardRef.current || !artist.song_url) return;
   setVideoGenerating(true);
-
+  
   try {
     // 1) Skapa stillbild av kortet
     const canvas = await html2canvas(cardRef.current, {
@@ -94,17 +94,17 @@ const handleTikTokDownload = async () => {
     });
     const dataUrl = canvas.toDataURL('image/png');
     const res = await fetch(dataUrl);
-    const imageBuffer = new Uint8Array(await res.arrayBuffer());
-
+    const imageBuffer = await res.arrayBuffer();
+    
     // 2) Ladda FFmpeg
     await ensureFFmpegLoaded();
-
+    
     // 3) Skriv bild + ljud
-    ffmpeg.FS('writeFile', 'image.png', imageBuffer);
-    ffmpeg.FS('writeFile', 'audio.mp3', await fetchFile(artist.song_url));
-
+    await ffmpeg.writeFile('image.png', new Uint8Array(imageBuffer));
+    await ffmpeg.writeFile('audio.mp3', await fetchFile(artist.song_url));
+    
     // 4) Kör konvertering
-    await ffmpeg.run(
+    await ffmpeg.exec([
       '-loop', '1',
       '-i', 'image.png',
       '-i', 'audio.mp3',
@@ -116,17 +116,18 @@ const handleTikTokDownload = async () => {
       '-b:a', '128k',
       '-shortest',
       'out.mp4'
-    );
-
+    ]);
+    
     // 5) Läs ut och ladda ner MP4
-    const data = ffmpeg.FS('readFile', 'out.mp4');
+    const data = await ffmpeg.readFile('out.mp4');
     const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
+    
     const a = document.createElement('a');
     a.href = url;
     a.download = `${artist.name.replace(/\s+/g, '_')}_tiktok.mp4`;
-    document.body.append(a);
+    document.body.appendChild(a);
     a.click();
-    a.remove();
+    document.body.removeChild(a);
   } catch (err) {
     console.error('TikTok video generation error:', err);
   } finally {
