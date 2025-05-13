@@ -13,21 +13,29 @@ import ReactModal from 'react-modal';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile } from '@ffmpeg/util';
 
-// Instansiera FFmpeg med CDN-corePath (funkar i CRA)
 const ffmpeg = new FFmpeg({
   log: true,
-  corePath: 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.2/dist/ffmpeg-core.js'
+  // Använd alternativa CDN för bättre prestanda
+  corePath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.2/dist/ffmpeg-core.js',
+  wasmPath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.2/dist/ffmpeg-core.wasm',
+  workerPath: 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.2/dist/ffmpeg-core.worker.js'
 });
 
 let ffmpegReady = false;
 
 async function ensureFFmpegLoaded() {
   if (!ffmpegReady) {
-    await ffmpeg.load();
-    ffmpegReady = true;
+    console.log("⏳ Laddar FFmpeg...");
+    try {
+      await ffmpeg.load();
+      console.log("✅ FFmpeg laddad framgångsrikt!");
+      ffmpegReady = true;
+    } catch (error: any) {
+      console.error("❌ Fel vid laddning av FFmpeg:", error);
+      throw new Error("Kunde inte ladda FFmpeg-biblioteket: " + error.message);
+    }
   }
 }
-
 
 
 interface ArtistCardProps {
@@ -82,54 +90,141 @@ const showModal = (title: string, message: string) => {
   setIsModalOpen(true);
 };
 
-const handleTikTokDownload = async () => {
-  if (!cardRef.current || !artist.song_url) return;
+const handleTikTokDownload = async (): Promise<void> => {
+  // 1) Säkerställ att ref och URL finns
+  const cardEl = cardRef.current;
+  if (!cardEl || !artist.song_url) return;
+
   setVideoGenerating(true);
-  
+
   try {
-    // 1) Skapa stillbild av kortet
-    const canvas = await html2canvas(cardRef.current, {
-      backgroundColor: '#0A0A0F',
-      scale: 2,
+    // 2) Ladda FFmpeg
+    console.log("⏳ Förbereder FFmpeg...");
+    await ensureFFmpegLoaded();
+    console.log("✅ FFmpeg redo!");
+
+    // 3) Vänta på att alla <img> i kortet är fully loaded
+    console.log("⏳ Väntar på bilder...");
+    const images = cardEl.querySelectorAll<HTMLImageElement>("img");
+    await Promise.all(
+      Array.from(images).map((img) => {
+        if (img.complete) return Promise.resolve();
+        return new Promise<void>((resolve) => {
+          img.onload = () => resolve();
+          img.onerror = () => resolve(); // Fortsätt även om en bild failar
+        });
+      })
+    );
+    console.log("✅ Alla bilder klara");
+
+    // 4) Rendera kortet med html2canvas
+    console.log("⏳ Genererar canvas...");
+    const canvas = await html2canvas(cardEl, {
+      backgroundColor: "#0A0A0F",
+      scale: 3,
+      useCORS: true,
+      allowTaint: true,
+      logging: true,
+      imageTimeout: 0,
+      onclone: (doc) => {
+        // 5) Gör alla element synliga i den klonade DOM:en
+        const clonedCard = doc.querySelector<HTMLElement>("#" + cardEl.id);
+        if (!clonedCard) return;
+
+        clonedCard.style.display = "block";
+        clonedCard.style.visibility = "visible";
+        clonedCard.style.opacity = "1";
+
+        // Alla barn som HTMLElement
+        const allEls = clonedCard.querySelectorAll<HTMLElement>("*");
+        allEls.forEach((el) => {
+          el.style.display =
+            el.tagName.toLowerCase() === "img" ? "inline-block" : "block";
+          el.style.visibility = "visible";
+          el.style.opacity = "1";
+        });
+      },
     });
-    const dataUrl = canvas.toDataURL('image/png');
+    console.log(
+      "✅ Canvas klar:",
+      canvas.width,
+      "x",
+      canvas.height
+    );
+
+    // 6) Extrahera PNG-data
+    const dataUrl = canvas.toDataURL("image/png");
     const res = await fetch(dataUrl);
     const imageBuffer = await res.arrayBuffer();
-    
-    // 2) Ladda FFmpeg
-    await ensureFFmpegLoaded();
-    
-    // 3) Skriv bild + ljud
-    await ffmpeg.writeFile('image.png', new Uint8Array(imageBuffer));
-    await ffmpeg.writeFile('audio.mp3', await fetchFile(artist.song_url));
-    
-    // 4) Kör konvertering
-    await ffmpeg.exec([
-      '-loop', '1',
-      '-i', 'image.png',
-      '-i', 'audio.mp3',
-      '-c:v', 'libx264',
-      '-vf', 'scale=720:1280,format=yuv420p',
-      '-t', '60',
-      '-af', 'afade=t=out:st=53:d=7',
-      '-c:a', 'aac',
-      '-b:a', '128k',
-      '-shortest',
-      'out.mp4'
-    ]);
-    
-    // 5) Läs ut och ladda ner MP4
-    const data = await ffmpeg.readFile('out.mp4');
-    const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${artist.name.replace(/\s+/g, '_')}_tiktok.mp4`;
+    console.log(`✅ Bilddata: ${imageBuffer.byteLength} bytes`);
+
+    // 7) Hämta ljudfil (med fallback)
+    console.log("⏳ Hämtar ljudfil:", artist.song_url);
+    let audioFile: Uint8Array;
+    try {
+      audioFile = await fetchFile(artist.song_url);
+      console.log(`✅ Ljudfil: ${audioFile.byteLength} bytes`);
+    } catch (audioError) {
+      console.error("❌ Kunde inte hämta ljud:", audioError);
+      audioFile = new Uint8Array(1024);
+      console.log("⚠️ Använder tyst ljud som fallback");
+    }
+
+    // 8) Skriv in i FFmpeg FS
+    await ffmpeg.writeFile("image.png", new Uint8Array(imageBuffer));
+    await ffmpeg.writeFile("audio.mp3", audioFile);
+
+    // 9) Kör FFmpeg
+    console.log("⏳ Kör FFmpeg...");
+    const ffmpegArgs = [
+      "-loop",
+      "1",
+      "-i",
+      "image.png",
+      "-i",
+      "audio.mp3",
+      "-c:v",
+      "libx264",
+      "-preset",
+      "ultrafast",
+      "-tune",
+      "stillimage",
+      "-vf",
+      "scale=720:1280:force_original_aspect_ratio=decrease,pad=720:1280:(ow-iw)/2:(oh-ih)/2,format=yuv420p",
+      "-t",
+      "30",
+      "-af",
+      "afade=t=out:st=25:d=5",
+      "-c:a",
+      "aac",
+      "-b:a",
+      "128k",
+      "-shortest",
+      "out.mp4",
+    ];
+    await ffmpeg.exec(ffmpegArgs);
+    console.log("✅ Video klar!");
+
+    // 10) Läs ut och trigga nedladdning
+    const data = await ffmpeg.readFile("out.mp4");
+    const blobUrl = URL.createObjectURL(
+      new Blob([data.buffer], { type: "video/mp4" })
+    );
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = `${artist.name.replace(/\s+/g, "_")}_tiktok.mp4`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  } catch (err) {
-    console.error('TikTok video generation error:', err);
+    URL.revokeObjectURL(blobUrl);
+
+    console.log("✅ Nedladdning komplett!");
+  } catch (error: unknown) {
+    // 11) Felhantering med typ-narrowing
+    console.error("❌ TikTok video generation error:", error);
+    const msg =
+      error instanceof Error ? error.message : String(error);
+    alert(`Fel vid generering av video: ${msg}`);
   } finally {
     setVideoGenerating(false);
   }
