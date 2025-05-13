@@ -95,6 +95,11 @@ const handleTikTokDownload = async (): Promise<void> => {
   const cardEl = cardRef.current;
   if (!cardEl || !artist.song_url) return;
 
+  // 1a) Se till att kortet har ett giltigt id
+  if (!cardEl.id) {
+    cardEl.id = `tiktok-card-${Date.now()}`;
+  }
+
   setVideoGenerating(true);
 
   try {
@@ -103,7 +108,7 @@ const handleTikTokDownload = async (): Promise<void> => {
     await ensureFFmpegLoaded();
     console.log("✅ FFmpeg redo!");
 
-    // 3) Vänta på att alla <img> i kortet är fully loaded
+    // 3) Vänta på att alla <img> i kortet är färdiga
     console.log("⏳ Väntar på bilder...");
     const images = cardEl.querySelectorAll<HTMLImageElement>("img");
     await Promise.all(
@@ -111,7 +116,7 @@ const handleTikTokDownload = async (): Promise<void> => {
         if (img.complete) return Promise.resolve();
         return new Promise<void>((resolve) => {
           img.onload = () => resolve();
-          img.onerror = () => resolve(); // Fortsätt även om en bild failar
+          img.onerror = () => resolve();
         });
       })
     );
@@ -127,34 +132,29 @@ const handleTikTokDownload = async (): Promise<void> => {
       logging: true,
       imageTimeout: 0,
       onclone: (doc) => {
-        // 5) Gör alla element synliga i den klonade DOM:en
-        const clonedCard = doc.querySelector<HTMLElement>("#" + cardEl.id);
+        // 5) Hämta klonat kort via getElementById
+        const clonedCard = doc.getElementById(cardEl.id!);
         if (!clonedCard) return;
 
-        clonedCard.style.display = "block";
+        // Eftersom getElementById alltid ger HTMLElement, kan vi använda .style direkt
+        clonedCard.style.display    = "block";
         clonedCard.style.visibility = "visible";
-        clonedCard.style.opacity = "1";
+        clonedCard.style.opacity    = "1";
 
-        // Alla barn som HTMLElement
+        // Gör alla barn synliga
         const allEls = clonedCard.querySelectorAll<HTMLElement>("*");
         allEls.forEach((el) => {
-          el.style.display =
-            el.tagName.toLowerCase() === "img" ? "inline-block" : "block";
+          el.style.display    = el.tagName.toLowerCase() === "img" ? "inline-block" : "block";
           el.style.visibility = "visible";
-          el.style.opacity = "1";
+          el.style.opacity    = "1";
         });
       },
     });
-    console.log(
-      "✅ Canvas klar:",
-      canvas.width,
-      "x",
-      canvas.height
-    );
+    console.log("✅ Canvas klar:", canvas.width, "x", canvas.height);
 
     // 6) Extrahera PNG-data
     const dataUrl = canvas.toDataURL("image/png");
-    const res = await fetch(dataUrl);
+    const res     = await fetch(dataUrl);
     const imageBuffer = await res.arrayBuffer();
     console.log(`✅ Bilddata: ${imageBuffer.byteLength} bytes`);
 
@@ -170,48 +170,39 @@ const handleTikTokDownload = async (): Promise<void> => {
       console.log("⚠️ Använder tyst ljud som fallback");
     }
 
-    // 8) Skriv in i FFmpeg FS
+    // 8) Skriv till FFmpeg
     await ffmpeg.writeFile("image.png", new Uint8Array(imageBuffer));
     await ffmpeg.writeFile("audio.mp3", audioFile);
 
     // 9) Kör FFmpeg
     console.log("⏳ Kör FFmpeg...");
     const ffmpegArgs = [
-      "-loop",
-      "1",
-      "-i",
-      "image.png",
-      "-i",
-      "audio.mp3",
-      "-c:v",
-      "libx264",
-      "-preset",
-      "ultrafast",
-      "-tune",
-      "stillimage",
+      "-loop", "1",
+      "-i",   "image.png",
+      "-i",   "audio.mp3",
+      "-c:v", "libx264",
+      "-preset", "ultrafast",
+      "-tune",   "stillimage",
       "-vf",
-      "scale=720:1280:force_original_aspect_ratio=decrease,pad=720:1280:(ow-iw)/2:(oh-ih)/2,format=yuv420p",
-      "-t",
-      "30",
-      "-af",
-      "afade=t=out:st=25:d=5",
-      "-c:a",
-      "aac",
-      "-b:a",
-      "128k",
+        "scale=720:1280:force_original_aspect_ratio=decrease," +
+        "pad=720:1280:(ow-iw)/2:(oh-ih)/2,format=yuv420p",
+      "-t",   "30",
+      "-af",  "afade=t=out:st=25:d=5",
+      "-c:a", "aac",
+      "-b:a", "128k",
       "-shortest",
-      "out.mp4",
+      "out.mp4"
     ];
     await ffmpeg.exec(ffmpegArgs);
     console.log("✅ Video klar!");
 
-    // 10) Läs ut och trigga nedladdning
-    const data = await ffmpeg.readFile("out.mp4");
-    const blobUrl = URL.createObjectURL(
-      new Blob([data.buffer], { type: "video/mp4" })
+    // 10) Läs ut och ladda ner
+    const dataBlob = await ffmpeg.readFile("out.mp4");
+    const blobUrl  = URL.createObjectURL(
+      new Blob([dataBlob.buffer], { type: "video/mp4" })
     );
     const a = document.createElement("a");
-    a.href = blobUrl;
+    a.href     = blobUrl;
     a.download = `${artist.name.replace(/\s+/g, "_")}_tiktok.mp4`;
     document.body.appendChild(a);
     a.click();
@@ -220,10 +211,8 @@ const handleTikTokDownload = async (): Promise<void> => {
 
     console.log("✅ Nedladdning komplett!");
   } catch (error: unknown) {
-    // 11) Felhantering med typ-narrowing
     console.error("❌ TikTok video generation error:", error);
-    const msg =
-      error instanceof Error ? error.message : String(error);
+    const msg = error instanceof Error ? error.message : String(error);
     alert(`Fel vid generering av video: ${msg}`);
   } finally {
     setVideoGenerating(false);
