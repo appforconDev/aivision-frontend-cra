@@ -78,7 +78,7 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
   const shareText = `Kolla in ${artist.name} på min webbplats!`;
   const [username, setUsername] = useState<string>("");
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
-
+ 
   const [videoGenerating, setVideoGenerating] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -93,7 +93,7 @@ const handleTikTokDownload = async (): Promise<void> => {
   const cardEl = cardRef.current;
   if (!cardEl || !artist.song_url) return;
 
-  // 0) Ge kortet ett id om det saknas
+  // Se till att ditt Card har ett id (för toPng)
   if (!cardEl.id) {
     cardEl.id = `tiktok-card-${Date.now()}`;
   }
@@ -101,18 +101,17 @@ const handleTikTokDownload = async (): Promise<void> => {
   setVideoGenerating(true);
 
   try {
-    // 1) Se till att FFmpeg är laddat
+    // 1) Ladda FFmpeg
     console.log("⏳ Förbereder FFmpeg...");
     await ensureFFmpegLoaded();
     console.log("✅ FFmpeg laddad!");
 
-    // 2) Byt ut audio-spelaren mot din placeholder
-    const audioContainer = cardEl.querySelector<HTMLElement>('.audio-player-wrapper');
+    // 2) Byt ut audio-spelaren mot placeholder
+    const audioContainer = cardEl.querySelector<HTMLElement>(".audio-player-wrapper");
     let originalHTML: string | null = null;
     let originalStyle: Partial<CSSStyleDeclaration> = {};
     if (audioContainer) {
-      // Spara undan
-      originalHTML  = audioContainer.innerHTML;
+      originalHTML = audioContainer.innerHTML;
       originalStyle = {
         backgroundColor: audioContainer.style.backgroundColor,
         color:           audioContainer.style.color,
@@ -123,34 +122,32 @@ const handleTikTokDownload = async (): Promise<void> => {
         height:          audioContainer.style.height,
       };
 
-      // Ersätt med svart ruta + text
       Object.assign(audioContainer.style, {
-        backgroundColor: '#000',
-        color:           '#fff',
-        display:         'flex',
-        justifyContent:  'center',
-        alignItems:      'center',
-        fontSize:        '1.2rem',
-        height:          '3rem',
+        backgroundColor: "#000",
+        color:           "#fff",
+        display:         "flex",
+        justifyContent:  "center",
+        alignItems:      "center",
+        fontSize:        "1.2rem",
+        height:          "3rem",
       });
-      audioContainer.innerText = 'www.aivisioncontest.com';
+      audioContainer.innerText = "www.aivisioncontest.com";
     } else {
-      console.warn("⚠️ Hittade ingen .audio-player-wrapper – kolla din selector!");
+      console.warn("⚠️ Ingen .audio-player-wrapper hittades – kontrollera din JSX!");
     }
 
     // 3) Ta snapshot
     console.log("⏳ Tar snapshot av kortet...");
     const dataUrl = await toPng(cardEl, {
       backgroundColor: "#0A0A0F",
-      pixelRatio:     3,
-      cacheBust:      false,
+      pixelRatio:      3,
+      cacheBust:       false,
     });
     console.log("✅ Snapshot klart!");
 
     // 4) Återställ audio-spelaren
     if (audioContainer && originalHTML !== null) {
       audioContainer.innerHTML = originalHTML;
-      // Återställ bara de styles vi rörde
       if (originalStyle.backgroundColor) audioContainer.style.backgroundColor = originalStyle.backgroundColor;
       if (originalStyle.color)           audioContainer.style.color           = originalStyle.color;
       if (originalStyle.display)         audioContainer.style.display         = originalStyle.display;
@@ -160,28 +157,28 @@ const handleTikTokDownload = async (): Promise<void> => {
       if (originalStyle.height)          audioContainer.style.height          = originalStyle.height;
     }
 
-    // 5) Konvertera dataUrl till ArrayBuffer
+    // 5) Bild → ArrayBuffer
     const imgRes       = await fetch(dataUrl);
     const imageBuffer = await imgRes.arrayBuffer();
     console.log(`✅ Bilddata: ${imageBuffer.byteLength} bytes`);
 
-    // 6) Hämta ljudfil (med fallback)
+    // 6) Ljudfil (med fallback)
     console.log("⏳ Hämtar ljudfil:", artist.song_url);
     let audioFile: Uint8Array;
     try {
       audioFile = await fetchFile(artist.song_url);
       console.log(`✅ Ljudfil: ${audioFile.byteLength} bytes`);
-    } catch (audioError) {
-      console.warn("⚠️ Kunde inte hämta ljud, använder tyst fallback", audioError);
+    } catch {
+      console.warn("⚠️ Använder tyst ljud-fallback");
       audioFile = new Uint8Array(1024);
     }
 
-    // 7) Skriv in i FFmpeg:s FS
-    console.log("⏳ Skriver filer...");
+    // 7) Skriv till FFmpeg FS
+    console.log("⏳ Skriver filer till FFmpeg FS...");
     await ffmpeg.writeFile("image.png", new Uint8Array(imageBuffer));
     await ffmpeg.writeFile("audio.mp3", audioFile);
 
-    // 8) Generera videon
+    // 8) Generera video
     console.log("⏳ Genererar video med FFmpeg...");
     await ffmpeg.exec([
       "-loop","1",
@@ -190,7 +187,9 @@ const handleTikTokDownload = async (): Promise<void> => {
       "-c:v","libx264",
       "-preset","ultrafast",
       "-tune","stillimage",
-      "-vf","scale=720:1280:force_original_aspect_ratio=decrease,pad=720:1280:(ow-iw)/2:(oh-ih)/2,format=yuv420p",
+      "-vf",
+        "scale=720:1280:force_original_aspect_ratio=decrease," +
+        "pad=720:1280:(ow-iw)/2:(oh-ih)/2,format=yuv420p",
       "-t","30",
       "-af","afade=t=out:st=25:d=5",
       "-c:a","aac",
@@ -200,7 +199,7 @@ const handleTikTokDownload = async (): Promise<void> => {
     ]);
     console.log("✅ Video genererad!");
 
-    // 9) Läs ut och ladda ner
+    // 9) Läs och ladda ner
     console.log("⏳ Läser ut videofil...");
     const outData = await ffmpeg.readFile("out.mp4");
     console.log(`✅ Videofil läst: ${outData.buffer.byteLength} bytes`);
@@ -215,8 +214,9 @@ const handleTikTokDownload = async (): Promise<void> => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(blobUrl);
-    console.log("✅ Nedladdning komplett!");
 
+    // 10) ladda om sidan så Card återställs
+    window.location.reload();
   } catch (err: unknown) {
     console.error("❌ TikTok video generation error:", err);
     const msg = err instanceof Error ? err.message : String(err);
@@ -469,7 +469,16 @@ const handleTikTokDownload = async (): Promise<void> => {
   };
 
   return (
+    
   <Card  ref={cardRef} className={cardClass} onClick={() => navigate(`/artists/${artist.artist_id}`)}>
+    {videoGenerating && (
+  <div
+    className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-75"
+  >
+    <div className="loader mb-4"><Loader2 className="h-6 w-6 text-[#FE2C55] animate-spin" /></div>
+    <p className="text-white text-lg">Creating video…</p>
+  </div>
+)}
     <div className="flex items-center justify-between mb-4">
       <Music className="h-6 w-6 text-primary" />
       <div className="flex-grow flex justify-center">
