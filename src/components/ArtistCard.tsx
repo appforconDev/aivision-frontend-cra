@@ -806,18 +806,61 @@ const handleTikTokDownload = async (): Promise<void> => {
       )}
     </div>
     {videoUrl && (
-    <div className="mt-4 text-center">
-      <p className="text-white mb-2">🎥 Din video är klar!</p>
+  <div className="mt-6 space-y-4 text-center">
+    {/* 1) Videopreview */}
+    <video
+      src={videoUrl}
+      controls
+      className="mx-auto rounded shadow-lg"
+      style={{ maxWidth: "100%", height: "auto" }}
+      playsInline
+    />
+
+    {/* 2) Instruktion för sparande */}
+    <p className="text-gray-300 text-sm">
+      För att spara på iPhone: tryck och håll kvar videon ovan och välj “Spara video”.
+    </p>
+
+    <div className="flex justify-center space-x-4">
+      {/* 3a) Share via Web Share API */}
+      {navigator.share && (
+        <button
+          onClick={async () => {
+            try {
+              const resp = await fetch(videoUrl);
+              const blob = await resp.blob();
+              const file = new File(
+                [blob],
+                `${artist.name.replace(/\s+/g, "_")}_tiktok.mp4`,
+                { type: "video/mp4" }
+              );
+              await navigator.share({
+                files: [file],
+                title: "Min TikTok-video",
+                text: "Här är videon jag skapade!",
+              });
+            } catch (e) {
+              console.warn("Share misslyckades:", e);
+            }
+          }}
+          className="px-4 py-2 bg-green-500 text-white rounded-lg"
+        >
+          Dela video
+        </button>
+      )}
+
+      {/* 3b) Fallback-länk som öppnar i ny flik */}
       <a
         href={videoUrl}
         target="_blank"
         rel="noreferrer"
-        className="inline-block px-4 py-2 bg-blue-500 text-white rounded"
+        className="px-4 py-2 bg-blue-500 text-white rounded-lg"
       >
-        Öppna / Spara video
+        Öppna i ny flik
       </a>
     </div>
-  )}
+  </div>
+)}
   </Card>
   
 );
