@@ -80,7 +80,7 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoGenerating, setVideoGenerating] = useState(false);
-
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
 const [modalContent, setModalContent] = useState<{title: string; message: string}>({title: '', message: ''});
 
@@ -93,8 +93,10 @@ const handleTikTokDownload = async (): Promise<void> => {
   const cardEl = cardRef.current;
   if (!cardEl || !artist.song_url) return;
 
-  // 0) Lägg på id för toPng om det saknas
-  if (!cardEl.id) cardEl.id = `tiktok-card-${Date.now()}`;
+  // 0) Ge kortet ett id för toPng
+  if (!cardEl.id) {
+    cardEl.id = `tiktok-card-${Date.now()}`;
+  }
 
   setVideoGenerating(true);
   setVideoUrl(null);
@@ -109,11 +111,11 @@ const handleTikTokDownload = async (): Promise<void> => {
     });
     console.log("✅ Snapshot klart!");
 
-    // 2) Hämta PNG-buffern
-    const imgRes       = await fetch(dataUrl);
-    const imageBuffer = await imgRes.blob();
+    // 2) Hämta snapshot-bild som Blob
+    const imgRes    = await fetch(dataUrl);
+    const imageBlob = await imgRes.blob();
 
-    // 3) Hämta ljud (fallback)
+    // 3) Hämta ljudfil (fallback)
     console.log("⏳ Hämtar ljudfil:", artist.song_url);
     let audioBlob: Blob;
     try {
@@ -124,22 +126,24 @@ const handleTikTokDownload = async (): Promise<void> => {
       audioBlob = new Blob([new Uint8Array(1024)], { type: "audio/mpeg" });
     }
 
-    // 4) Skicka till backend
+    // 4) Bygg FormData och POST till din Flask-endpoint
     console.log("⏳ Laddar upp till server för videogenerering...");
     const form = new FormData();
-    form.append("image", imageBuffer, "image.png");
-    form.append("audio", audioBlob,   "audio.mp3");
+    form.append("image", imageBlob, "image.png");
+    form.append("audio", audioBlob, "audio.mp3");
 
     const resp = await fetch(`${backendUrl}/api/make-tiktok-video`, {
       method: "POST",
       body:   form,
     });
-    if (!resp.ok) throw new Error(`Serverfel: ${resp.statusText}`);
-    const { url } = await resp.json() as { url: string };
+    if (!resp.ok) {
+      throw new Error(`Serverfel: ${resp.status} ${resp.statusText}`);
+    }
+    const { url } = (await resp.json()) as { url: string };
 
     // 5) Spara presigned URL i state
     setVideoUrl(url);
-    console.log("✅ Video klar på server, laddar URL:", url);
+    console.log("✅ Video klar på server, URL:", url);
 
   } catch (err: unknown) {
     console.error("❌ TikTok video generation error:", err);
