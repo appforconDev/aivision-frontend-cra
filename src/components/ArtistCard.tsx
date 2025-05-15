@@ -93,49 +93,14 @@ const handleTikTokDownload = async (): Promise<void> => {
   const cardEl = cardRef.current;
   if (!cardEl || !artist.song_url) return;
 
-  // 0) Se till att kortet har ett id för toPng
-  if (!cardEl.id) {
-    cardEl.id = `tiktok-card-${Date.now()}`;
-  }
+  // 0) Lägg på id för toPng om det saknas
+  if (!cardEl.id) cardEl.id = `tiktok-card-${Date.now()}`;
 
-  // starta spinner + nollställ tidigare videoUrl
   setVideoGenerating(true);
   setVideoUrl(null);
 
   try {
-    // 1) Ladda FFmpeg
-    console.log("⏳ Förbereder FFmpeg...");
-    await ensureFFmpegLoaded();
-    console.log("✅ FFmpeg laddad!");
-
-    // 2) Byt ut audio-spelaren mot placeholder
-    const audioWrapper = cardEl.querySelector<HTMLElement>(".audio-player-wrapper");
-    let origHTML: string | null = null;
-    let origStyle: Partial<CSSStyleDeclaration> = {};
-    if (audioWrapper) {
-      origHTML = audioWrapper.innerHTML;
-      // spara de inline-styles vi tänker skriva över
-      ["backgroundColor","color","display","justifyContent","alignItems","fontSize","height"]
-        .forEach(prop => {
-          // @ts-ignore
-          origStyle[prop] = audioWrapper.style[prop];
-        });
-
-      Object.assign(audioWrapper.style, {
-        backgroundColor: "#000",
-        color:           "#fff",
-        display:         "flex",
-        justifyContent:  "center",
-        alignItems:      "center",
-        fontSize:        "1.2rem",
-        height:          "3rem",
-      });
-      audioWrapper.innerText = "www.aivisioncontest.com";
-    } else {
-      console.warn("⚠️ Ingen .audio-player-wrapper hittades – kontrollera din JSX!");
-    }
-
-    // 3) Ta snapshot av kortet
+    // 1) Ta snapshot av kortet
     console.log("⏳ Tar snapshot av kortet...");
     const dataUrl = await toPng(cardEl, {
       backgroundColor: "#0A0A0F",
@@ -144,69 +109,37 @@ const handleTikTokDownload = async (): Promise<void> => {
     });
     console.log("✅ Snapshot klart!");
 
-    // 4) Återställ audio-spelaren
-    if (audioWrapper && origHTML !== null) {
-      audioWrapper.innerHTML = origHTML;
-      Object.entries(origStyle).forEach(([key, val]) => {
-        // @ts-ignore
-        audioWrapper.style[key] = val!;
-      });
-    }
-
-    // 5) PNG → ArrayBuffer
+    // 2) Hämta PNG-buffern
     const imgRes       = await fetch(dataUrl);
-    const imageBuffer = await imgRes.arrayBuffer();
-    console.log(`✅ Bilddata: ${imageBuffer.byteLength} bytes`);
+    const imageBuffer = await imgRes.blob();
 
-    // 6) Hämta ljudfil (med fallback)
+    // 3) Hämta ljud (fallback)
     console.log("⏳ Hämtar ljudfil:", artist.song_url);
-    let audioFile: Uint8Array;
+    let audioBlob: Blob;
     try {
-      audioFile = await fetchFile(artist.song_url);
-      console.log(`✅ Ljudfil: ${audioFile.byteLength} bytes`);
+      const audioRes = await fetch(artist.song_url);
+      audioBlob = await audioRes.blob();
     } catch {
       console.warn("⚠️ Använder tyst audio-fallback");
-      audioFile = new Uint8Array(1024);
+      audioBlob = new Blob([new Uint8Array(1024)], { type: "audio/mpeg" });
     }
 
-    // 7) Skriv in i FFmpeg:s filer
-    console.log("⏳ Skriver filer till FFmpeg FS...");
-    await ffmpeg.writeFile("image.png", new Uint8Array(imageBuffer));
-    await ffmpeg.writeFile("audio.mp3", audioFile);
+    // 4) Skicka till backend
+    console.log("⏳ Laddar upp till server för videogenerering...");
+    const form = new FormData();
+    form.append("image", imageBuffer, "image.png");
+    form.append("audio", audioBlob,   "audio.mp3");
 
-    // 8) Generera MP4 med FFmpeg
-    console.log("⏳ Genererar video med FFmpeg...");
-    await ffmpeg.exec([
-      "-loop","1",
-      "-i","image.png",
-      "-i","audio.mp3",
-      "-c:v","libx264",
-      "-preset","ultrafast",
-      "-tune","stillimage",
-      "-vf",
-        "scale=720:1280:force_original_aspect_ratio=decrease," +
-        "pad=720:1280:(ow-iw)/2:(oh-ih)/2,format=yuv420p",
-      "-t","30",
-      "-af","afade=t=out:st=25:d=5",
-      "-c:a","aac",
-      "-b:a","128k",
-      "-shortest",
-      "out.mp4"
-    ]);
-    console.log("✅ Video genererad!");
+    const resp = await fetch(`${backendUrl}/api/make-tiktok-video`, {
+      method: "POST",
+      body:   form,
+    });
+    if (!resp.ok) throw new Error(`Serverfel: ${resp.statusText}`);
+    const { url } = await resp.json() as { url: string };
 
-    // 9) Läs ut videon
-    console.log("⏳ Läser ut videofil...");
-    const outData = await ffmpeg.readFile("out.mp4");
-    console.log(`✅ Videofil läst: ${outData.buffer.byteLength} bytes`);
-
-    // 10) Skapa blob-URL och spara i state
-    const blob    = new Blob([outData.buffer], { type: "video/mp4" });
-    const blobUrl = URL.createObjectURL(blob);
-    setVideoUrl(blobUrl);
-
-    // Rensa upp blobUrl efter en stund
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+    // 5) Spara presigned URL i state
+    setVideoUrl(url);
+    console.log("✅ Video klar på server, laddar URL:", url);
 
   } catch (err: unknown) {
     console.error("❌ TikTok video generation error:", err);
@@ -216,6 +149,7 @@ const handleTikTokDownload = async (): Promise<void> => {
     setVideoGenerating(false);
   }
 };
+
 
 
 
