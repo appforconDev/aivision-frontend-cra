@@ -3,7 +3,7 @@ if (!raw) {
   throw new Error("Missing env var REACT_APP_BACKEND_URL");
 }
 
-// Nu vet TypeScript att BACKEND_URL är en string
-const backendUrl: string = raw;
+// Ensure we always have a string value
+const backendUrl: string = raw.trim();
 
 export default backendUrl;
