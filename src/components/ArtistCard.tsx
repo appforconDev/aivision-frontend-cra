@@ -132,7 +132,7 @@ const handleTikTokDownload = async (): Promise<void> => {
     form.append("image", imageBlob, "image.png");
     form.append("audio", audioBlob, "audio.mp3");
 
-    const resp = await fetch(`${backendUrl}/api/make-tiktok-video`, {
+    const resp = await fetch(`${backendUrl}/make-tiktok-video`, {
       method: "POST",
       body:   form,
     });
