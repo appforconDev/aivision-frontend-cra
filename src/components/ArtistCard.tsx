@@ -43,13 +43,13 @@ interface ArtistCardProps {
   isFavorite: boolean;
   onToggleFavorite: (artistId: string) => void;
   onArtistUpdate: (updatedArtist: Artist) => void;
-  backendUrl?: string;
   useNeonBorder?: boolean;
   showDeleteIcon?: boolean; // Prop för att visa/dölja Delete-ikonen
   onDelete?: (artistId: string) => void; // Prop för att hantera borttagning
   showSpotifyIcon?: boolean; // Ny prop för att visa/dölja Spotify-ikonen
   onSelectArtist: (artistId: string) => void; // Ny prop
   isSelected: boolean; // Ny prop
+  backendUrl: string;
 }
 
 const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
@@ -58,7 +58,7 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
   onToggleFavorite,
   onArtistUpdate,
   useNeonBorder = false,
-  backendUrl = process.env.REACT_APP_BACKEND_URL,
+  backendUrl = process.env.REACT_APP_BACKEND_URL || (() => { throw new Error("Missing REACT_APP_BACKEND_URL"); })(),
   showDeleteIcon = false,
   onDelete,
   showSpotifyIcon = false, // Standardvärde: false
@@ -132,7 +132,11 @@ const handleTikTokDownload = async (): Promise<void> => {
     form.append("image", imageBlob, "image.png");
     form.append("audio", audioBlob, "audio.mp3");
 
-    const resp = await fetch(`${backendUrl}/api/make-tiktok-video`, {
+    const base = backendUrl.replace(/\/+$/, "");  // tar bort alla avslutande snedstreck
+    const endpoint = `${base}/make-tiktok-video`;
+    console.log("▶️ POST to", endpoint);
+
+    const resp = await fetch(endpoint, {
       method: "POST",
       body:   form,
     });
