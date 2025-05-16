@@ -91,6 +91,7 @@ const showModal = (title: string, message: string) => {
   setIsModalOpen(true);
 };
 
+
 const handleTikTokDownload = async (): Promise<void> => {
   const cardEl = cardRef.current;
   if (!cardEl || !artist.song_url) return;
@@ -104,20 +105,40 @@ const handleTikTokDownload = async (): Promise<void> => {
   setVideoUrl(null);
 
   try {
-    // 1) Ta snapshot av kortet
+    // ——— 0.5) Proxya alla <img> till same-origin Blob-URLs ———
+    const imgs = Array.from(cardEl.querySelectorAll<HTMLImageElement>('img'));
+    const originalSrcs = imgs.map(img => img.src);
+
+    await Promise.all(imgs.map(async (img, i) => {
+      try {
+        const res = await fetch(img.src, { mode: 'cors' });
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        img.src = blobUrl;
+      } catch (e) {
+        console.warn('Kunde inte proxya bild:', img.src, e);
+      }
+    }));
+
+    // ——— 1) Ta snapshot av kortet ———
     console.log("⏳ Tar snapshot av kortet...");
-    const dataUrl = await toPng(cardEl, {
+    const snapshotDataUrl = await toPng(cardEl, {
       backgroundColor: "#0A0A0F",
       pixelRatio:      3,
       cacheBust:       false,
     });
     console.log("✅ Snapshot klart!");
 
-    // 2) Hämta snapshot-bild som Blob
-    const imgRes    = await fetch(dataUrl);
+    // ——— 1.5) Återställ ursprungliga src på alla <img> ———
+    imgs.forEach((img, i) => {
+      img.src = originalSrcs[i];
+    });
+
+    // ——— 2) Hämta snapshot-bild som Blob ———
+    const imgRes    = await fetch(snapshotDataUrl);
     const imageBlob = await imgRes.blob();
 
-    // 3) Hämta ljudfil (fallback)
+    // ——— 3) Hämta ljudfil (fallback) ———
     console.log("⏳ Hämtar ljudfil:", artist.song_url);
     let audioBlob: Blob;
     try {
@@ -128,13 +149,13 @@ const handleTikTokDownload = async (): Promise<void> => {
       audioBlob = new Blob([new Uint8Array(1024)], { type: "audio/mpeg" });
     }
 
-    // 4) Bygg FormData och POST till din Flask-endpoint
+    // ——— 4) Bygg FormData och POST till Flask ———
     console.log("⏳ Laddar upp till server för videogenerering...");
     const form = new FormData();
     form.append("image", imageBlob, "image.png");
     form.append("audio", audioBlob, "audio.mp3");
 
-    const base = backendUrl.replace(/\/+$/, "");  // tar bort alla avslutande snedstreck
+    const base = backendUrl.replace(/\/+$/, "");
     const endpoint = `${base}/make-tiktok-video`;
     console.log("▶️ POST to", endpoint);
 
@@ -147,7 +168,7 @@ const handleTikTokDownload = async (): Promise<void> => {
     }
     const { url } = (await resp.json()) as { url: string };
 
-    // 5) Spara presigned URL i state
+    // ——— 5) Spara presigned URL i state ———
     setVideoUrl(url);
     console.log("✅ Video klar på server, URL:", url);
 
