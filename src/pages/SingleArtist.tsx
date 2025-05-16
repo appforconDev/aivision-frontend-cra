@@ -349,7 +349,6 @@ const handleVote = async (points: number) => {
           isSelected={selectedArtists.includes(artist.artist_id)}
           isFavorite={favorites.includes(artist.artist_id)}
           onToggleFavorite={toggleFavorite}
-          backendUrl={backendUrl}
           useNeonBorder={false}
         />
       </div>

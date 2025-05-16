@@ -255,7 +255,6 @@ const ArtistList = () => {
               showSpotifyIcon={false} 
               showDeleteIcon={false}
               onToggleFavorite={toggleFavorite}
-              backendUrl={backendUrl}
             />
           ))}
         </div>

@@ -372,7 +372,6 @@ const Submissions = () => {
       onArtistUpdate={handleArtistUpdate}
       isFavorite={favorites.includes(artist.artist_id)}
       onToggleFavorite={toggleFavorite}
-      backendUrl={backendUrl}
       useNeonBorder={false}
       showSpotifyIcon={true} 
       showDeleteIcon={true} // Visa Delete-ikonen

@@ -140,7 +140,7 @@ const Leaderboard = () => {
                 isSelected={selectedArtists.includes(leader.artist_id)}
                 showSpotifyIcon={false}
                 showDeleteIcon={false}
-                backendUrl={backendUrl}
+                
               />
             </div>
           )}
@@ -160,7 +160,6 @@ const Leaderboard = () => {
                 isSelected={selectedArtists.includes(artist.artist_id)}
                 showSpotifyIcon={false}
                 showDeleteIcon={false}
-                backendUrl={backendUrl}
               />
             </div>
           ))}

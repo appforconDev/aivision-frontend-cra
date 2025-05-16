@@ -332,7 +332,7 @@ const Index = () => {
                                 onSelectArtist={toggleArtistSelection}
                                 isSelected={selectedArtists.includes(artist.artist_id)}
                                 onToggleFavorite={toggleFavorite}
-                                backendUrl={backendUrl}
+                                
                               />
                 ))}
 
