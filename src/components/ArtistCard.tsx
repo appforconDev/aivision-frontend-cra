@@ -13,6 +13,7 @@ import ReactModal from 'react-modal';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile } from '@ffmpeg/util';
 import { toPng } from 'html-to-image'
+import backendUrl from '../config';
 
 const ffmpeg = new FFmpeg({
   log: true,
@@ -49,7 +50,7 @@ interface ArtistCardProps {
   showSpotifyIcon?: boolean; // Ny prop för att visa/dölja Spotify-ikonen
   onSelectArtist: (artistId: string) => void; // Ny prop
   isSelected: boolean; // Ny prop
-  backendUrl: string;
+  //backendUrl: string;
 }
 
 const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
@@ -63,7 +64,7 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
   showSpotifyIcon = false, // Standardvärde: false
   onSelectArtist, // Ny prop
   isSelected, // Ny prop
-  backendUrl = "",
+  //backendUrl = "",
 }) => {
   const navigate = useNavigate();
   const [showMusicStatus, setShowMusicStatus] = useState(false);
