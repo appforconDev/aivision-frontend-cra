@@ -7,6 +7,7 @@ import axios from "axios";
 import ArtistCard from "../components/ArtistCard";
 import { Artist, AverageRating } from "../components/types";
 import Filters from "../components/Filters";
+
 const backendUrl: string = process.env.REACT_APP_BACKEND_URL!;
 if (!backendUrl) {
   throw new Error("REACT_APP_BACKEND_URL måste vara satt i .env");
