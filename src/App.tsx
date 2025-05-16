@@ -23,7 +23,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import PaymentSuccess from "./components/PaymentSuccess";
 import { TicketsProvider } from "./components/TicketsContext";
 import './index.css';  // Även om den redan importeras i main.tsx
-
+import Press from "./pages/press";
 
 function App() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -72,6 +72,7 @@ function App() {
           <Route path="/:username" element={<UserArtistsPage />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/leaderboard" element={<LeaderBoard />} />
+          <Route path="/press" element={<Press />} />
           <Route path="/create" element={<CreateArtist isDialogOpen={isDialogOpen} setIsDialogOpen={setIsDialogOpen} />} />          <Route path="/artists" element={<ArtistList />} />
           <Route path="/artists/:id" element={<SingleArtist />} />
           <Route path="/submissions" element={<Submissions />} />
