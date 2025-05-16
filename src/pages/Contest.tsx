@@ -114,8 +114,11 @@ const HowItWorks = () => {
       <div>
                       <h2 className="text-3xl md:text-3xl font-bold text-secondary my-6">Total Prize Pool: ${(aiArtistsCount * 0.30).toFixed(2)} </h2>
                       <p className="mt-6 text-sm text-white/60">
-                      The prize pool is weighted toward the top three finishers—20 % / 15 % / 10 %—while the remaining 55 % is split evenly among places 4–10 (about 8 % each).
-                </p>
+                    The prize pool is weighted toward the top three finishers—20 % / 15 % / 10 %—while the remaining 55 % is split evenly among places 4–10 (about 8 % each).
+                  </p>
+                  <p className="mt-4 text-sm text-white/60">
+                    The contest resets on the 1st of every month all points are wiped and if you wish to compete with the same artist again, you will need to purchase a new ticket.
+                  </p>
                     </div>
                     
       

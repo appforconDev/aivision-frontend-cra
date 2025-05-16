@@ -9,7 +9,7 @@ import axios from "axios";
 import ArtistCard from "../components/ArtistCard"; // Importera ArtistCard
 import { Artist, AverageRating } from "../components/types"; // Importera typer
 import fbCover from '../assets/fb_cover.webp';
-
+import { CountdownToNextMonth } from '../components/Countdown';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -251,23 +251,21 @@ const Index = () => {
         ))}
       </div>
       </div></div><div className="container mx-auto px-4 mt-12">
-      <Link to="/create">
-        <Button
-          size="lg"
-          className="mt-4 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 neon-border"
-        >
-          Get Started
-        </Button>
-      </Link>
+      
 
       <div className="mt-8">
-        <h2 className="text-3xl font-bold text-secondary mb-4">
+      <CountdownToNextMonth />
+        <h2 className="text-3xl font-bold text-secondary mb-4 mt-8">
           Total Prize Pool: ${(aiArtistsCount * 0.30).toFixed(2)}
         </h2>
         <p className="text-sm text-white/60">
           The prize pool is weighted toward the top three finishers—20% / 15% / 10%—while the
           remaining 55% is split evenly among places 4–10 (about 8% each).
         </p>
+        <p className="mt-4 text-sm text-white/60">
+                    The contest resets on the 1st of every month all points are wiped and if you wish to compete with the same artist again, you will need to purchase a new ticket.
+                  </p>
+                  
       </div>
 
       <p className="mt-4 text-sm text-white/60">
@@ -281,6 +279,14 @@ const Index = () => {
         rules for more details.
       </p>
     </div>
+    <Link to="/create">
+        <Button
+          size="lg"
+          className="mt-4 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 neon-border"
+        >
+          Get Started
+        </Button>
+      </Link>
   </section>
 
 
