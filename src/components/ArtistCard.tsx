@@ -58,7 +58,7 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
   onToggleFavorite,
   onArtistUpdate,
   useNeonBorder = false,
-  backendUrl = process.env.REACT_APP_BACKEND_URL || (() => { throw new Error("Missing REACT_APP_BACKEND_URL"); })(),
+  backendUrl, 
   showDeleteIcon = false,
   onDelete,
   showSpotifyIcon = false, // Standardvärde: false
@@ -75,7 +75,7 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
   const [averageRating, setAverageRating] = useState<AverageRating | null>(null);
   const [showFullStory, setShowFullStory] = useState(false);
   const shareUrl = `https://www.aivisioncontest.com/api/ssr/artists/${artist.artist_id}`;
-  const shareText = `Kolla in ${artist.name} på min webbplats!`;
+  const shareText = `Check out ${artist.name}!`;
   const [username, setUsername] = useState<string>("");
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
