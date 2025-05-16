@@ -80,7 +80,8 @@ const ArtistCard: React.FC<ArtistCardProps> = React.memo(({
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoGenerating, setVideoGenerating] = useState(false);
-  
+  const cardRef = useRef<HTMLDivElement>(null);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 const [modalContent, setModalContent] = useState<{title: string; message: string}>({title: '', message: ''});
 
@@ -365,7 +366,7 @@ const handleTikTokDownload = async (): Promise<void> => {
     }
     // Normal sharing will proceed via the href
   };
-  const cardRef = useRef<HTMLDivElement>(null);
+
 
   const handleSaveImage = async () => {
     if (!cardRef.current) return;

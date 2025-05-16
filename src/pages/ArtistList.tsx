@@ -16,7 +16,12 @@ const ArtistList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalArtists, setTotalArtists] = useState(0);
   const artistsPerPage = 6;
-  const backendUrl = process.env.REACT_APP_BACKEND_URL
+
+const backendUrl: string = process.env.REACT_APP_BACKEND_URL!;
+if (!backendUrl) {
+  throw new Error("REACT_APP_BACKEND_URL måste vara satt i .env");
+}
+
 
 
   // Filter states
