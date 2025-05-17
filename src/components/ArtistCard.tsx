@@ -121,7 +121,7 @@ const handleTikTokDownload = async (): Promise<void> => {
   setVideoUrl(null);
 
   // Se till att vi anropar rätt rot-URL (strippar /api om den finns)
-  const API_ROOT = backendUrl.replace(/\/api\/?$/, '');
+  const API_ROOT = backendUrl;
 
   // 1) Spara alla <img> och deras ursprungliga src
   const imgs = Array.from(cardEl.querySelectorAll<HTMLImageElement>('img'));
