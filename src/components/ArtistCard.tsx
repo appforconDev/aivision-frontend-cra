@@ -128,8 +128,9 @@ const handleTikTokDownload = async (): Promise<void> => {
     // 2) Proxya alla <img> via backend
     await Promise.all(imgs.map(async (img, i) => {
       try {
-        const proxiedUrl = `${backendUrl.replace(/\/+$/, "")}/api/proxy-image?url=` +
+        const proxiedUrl = `${backendUrl.replace(/\/+$/, "")}/proxy-image?url=` +
                            encodeURIComponent(img.src);
+                           console.log(proxiedUrl);
         await fetch(proxiedUrl, { mode: 'cors' });
         img.src = proxiedUrl;
       } catch (e) {
@@ -152,7 +153,7 @@ const handleTikTokDownload = async (): Promise<void> => {
 
     // 4) Skicka till servern för rendering + video
     console.log("⏳ Laddar upp till servern...");
-    const endpoint = `${backendUrl.replace(/\/+$/, "")}/api/create-tiktok-video`;
+    const endpoint = `${backendUrl.replace(/\/+$/, "")}/create-tiktok-video`;
     const resp = await fetch(endpoint, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
