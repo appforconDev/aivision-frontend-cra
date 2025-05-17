@@ -127,9 +127,9 @@ const handleTikTokDownload = async () => {
   setVideoUrl(null);
 
   try {
-    const API_ROOT = backendUrl.replace(/\/api$/, '');
+    const API_ROOT = backendUrl;
 
-    const response = await fetch(`${API_ROOT}/api/create-tiktok-video`, {
+    const response = await fetch(`${API_ROOT}/create-tiktok-video`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
