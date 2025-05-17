@@ -120,25 +120,28 @@ const handleTikTokDownload = async (): Promise<void> => {
   setVideoGenerating(true);
   setVideoUrl(null);
 
-  // 1) Hämta alla bilder och spara original-src
+  // Se till att vi anropar rätt rot-URL (strippar /api om den finns)
+  const API_ROOT = backendUrl.replace(/\/api\/?$/, '');
+
+  // 1) Spara alla <img> och deras ursprungliga src
   const imgs = Array.from(cardEl.querySelectorAll<HTMLImageElement>('img'));
-  let originalSrcs: string[] = imgs.map(img => img.src);
+  const originalSrcs = imgs.map(img => img.src);
 
   try {
-    // 2) Proxya alla <img> via backend
-    await Promise.all(imgs.map(async (img, i) => {
-      try {
-        const proxiedUrl = `${backendUrl.replace(/\/+$/, "")}/proxy-image?url=` +
-                           encodeURIComponent(img.src);
-                           console.log(proxiedUrl);
-        await fetch(proxiedUrl, { mode: 'cors' });
-        img.src = proxiedUrl;
-      } catch (e) {
-        console.warn('⚠️ Proxy misslyckades för bild, behåller original:', img.src, e);
-      }
-    }));
+    // 2) Proxya bilder via din Flask‐ruta /proxy-image
+    await Promise.all(
+      imgs.map(async img => {
+        try {
+          const proxyUrl = `${API_ROOT}/proxy-image?url=${encodeURIComponent(img.src)}`;
+          await fetch(proxyUrl, { mode: 'cors' });
+          img.src = proxyUrl;
+        } catch (e) {
+          console.warn('⚠️ Proxy misslyckades för bild, behåller original:', img.src, e);
+        }
+      })
+    );
 
-    // 3) Extrahera HTML + CSS
+    // 3) Extrahera HTML + alla CSS‐regler
     const cardHtml   = cardEl.outerHTML;
     let   cardStyles = '';
     for (const sheet of Array.from(document.styleSheets)) {
@@ -146,25 +149,27 @@ const handleTikTokDownload = async (): Promise<void> => {
         for (const rule of Array.from((sheet as CSSStyleSheet).cssRules || [])) {
           cardStyles += (rule as CSSStyleRule).cssText + '\n';
         }
-      } catch {
-        // hoppa CORS-restriktioner
-      }
+      } catch { /* hoppa över CORS‐skyddade */ }
     }
 
-    // 4) Skicka till servern för rendering + video
-    console.log("⏳ Laddar upp till servern...");
-    const endpoint = `${backendUrl.replace(/\/+$/, "")}/create-tiktok-video`;
-    const resp = await fetch(endpoint, {
+    // 4) Skicka till din kombinerade rutt /create-tiktok-video
+    console.log("⏳ Laddar upp kort + ljud till servern...");
+    const resp = await fetch(`${API_ROOT}/create-tiktok-video`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ cardHtml, cardStyles, audioUrl: artist.song_url })
+      body:    JSON.stringify({
+        cardHtml,
+        cardStyles,
+        audioUrl: artist.song_url
+      })
     });
+
     if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
+      const err = await resp.json().catch(() => ({} as any));
       throw new Error(`Serverfel ${resp.status}: ${err.error || resp.statusText}`);
     }
 
-    // 5) Hämta URL och visa videon
+    // 5) Hämta tillbaka URL:en och visa videon
     const { url } = (await resp.json()) as { url: string };
     setVideoUrl(url);
     console.log("✅ Video klar på server, URL:", url);
@@ -173,15 +178,13 @@ const handleTikTokDownload = async (): Promise<void> => {
     console.error("❌ TikTok video generation error:", err);
     const msg = err instanceof Error ? err.message : String(err);
     alert(`Fel vid generering av video: ${msg}`);
-
   } finally {
-    // 6) Återställ original-src på bilderna
-    imgs.forEach((img, i) => {
-      img.src = originalSrcs[i];
-    });
+    // 6) Återställ alla bilder till original‐src
+    imgs.forEach((img, i) => img.src = originalSrcs[i]);
     setVideoGenerating(false);
   }
 };
+
 
 
 
