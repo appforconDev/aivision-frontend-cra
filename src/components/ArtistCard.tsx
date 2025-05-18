@@ -117,7 +117,7 @@ const handleTikTokDownload = async () => {
   if (!cardRef.current || !artist.song_url) {
     toast({
       title: "Error",
-      description: "Missing required elements for video generation",
+      description: "Missing card or song",
       variant: "destructive"
     });
     return;
@@ -127,26 +127,22 @@ const handleTikTokDownload = async () => {
   setVideoUrl(null);
 
   try {
-    const API_ROOT = backendUrl;
+    // Skapa PNG av ArtistCard
+    const canvas = await html2canvas(cardRef.current, {
+      backgroundColor: '#0A0A0F',
+      scale: 2,
+    });
+    const dataUrl = canvas.toDataURL('image/png');
 
-    const response = await fetch(`${API_ROOT}/create-tiktok-video`, {
+    // Skicka PNG + MP3-URL till backend
+    const response = await fetch(`${backendUrl}/create-tiktok-video`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        cardHtml: cardRef.current.outerHTML,
-        cardStyles: Array.from(document.styleSheets)
-          .map(sheet => {
-            try {
-              return Array.from(sheet.cssRules)
-                .map(rule => rule.cssText)
-                .join('\n');
-            } catch {
-              return '';
-            }
-          })
-          .join('\n'),
-        audioUrl: artist.song_url
-      })
+        cardImage: dataUrl,
+        audioUrl: artist.song_url,
+        artistName: artist.name.replace(/\s+/g, '_'),
+      }),
     });
 
     if (!response.ok) {
@@ -156,8 +152,8 @@ const handleTikTokDownload = async () => {
 
     const { url } = await response.json();
     setVideoUrl(url);
+
   } catch (error) {
-    console.error("Video generation error:", error);
     toast({
       variant: "destructive",
       title: "Video Generation Failed",
@@ -167,7 +163,6 @@ const handleTikTokDownload = async () => {
     setVideoGenerating(false);
   }
 };
-
 
 
 
